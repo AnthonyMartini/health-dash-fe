@@ -18,6 +18,50 @@
   filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
+/* src/App.css */
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+}
+
+.spinning-title {
+  font-size: 3rem;
+  font-weight: bold;
+  animation: spin  3s linear infinite;
+}
+.rainbow_text_animated {
+  background: linear-gradient(to right, #6666ff, #0099ff , #00ff00, #ff3399, #6666ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  background-size: 400% 100%;
+}
+
+@keyframes rainbow_animation {
+  0%,100% {
+      background-position: 0 0;
+  }
+
+  50% {
+      background-position: 100% 0;
+  }
+}
+
+@keyframes spin {
+  from {
+    background-position: 0 0;
+    transform: rotate(0deg);
+  }
+  to {
+    background-position: 100% 0;
+    transform: rotate(360deg);
+  }
+}
+
 @keyframes logo-spin {
   from {
     transform: rotate(0deg);
