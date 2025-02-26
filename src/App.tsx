@@ -1,19 +1,23 @@
-// src/App.tsx
-
 import React from "react";
-import "./App.css";
-import { useAuthenticator } from "@aws-amplify/ui-react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./Layout";
+import Dashboard from "./pages/Dashboard";
 
 const App: React.FC = () => {
-  const { signOut } = useAuthenticator();
   return (
-    <div className="container">
-      <h1 className="spinning-title rainbow_text_animated">
-        AWS Health Dashboard
-      </h1>
-      <button onClick={signOut}>Sign out</button>
-    </div>
+    <Router>
+      <Routes>
+        {/* Use Layout to wrap the main routes */}
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="*" element={<Dashboard />} />
+        </Route>
+      </Routes>
+    </Router>
   );
 };
 
 export default App;
+
+// src/App.tsx
