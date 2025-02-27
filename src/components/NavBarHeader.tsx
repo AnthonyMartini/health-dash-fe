@@ -18,7 +18,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   const { signOut } = useAuthenticator();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   return (
-    <div className="z-10 w-full h-[95px] p-6 bg-white flex items-center justify-between shadow-md">
+    <div className="z-10 w-full h-[95px] p-6 bg-white flex items-center justify-between shadow-md sticky top-0">
       <span className="font-bold text-2xl text-slate-900">{logoText}</span>
       <div className="flex items-center gap-8">
         <img

@@ -24,7 +24,7 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
     },
   ];
   return (
-    <div className="h-full flex-shrink-0 w-[270px] flex flex-col items-center gap-[10px] pt-[20px]">
+    <div className="h-fit flex-shrink-0 w-[270px] flex flex-col items-center gap-[10px] py-[20px] sticky top-[95px]">
       {buttons.map((item) => (
         <button
           className={`${
