@@ -113,7 +113,7 @@ const DataRow: React.FC<{
       <div className="flex flex-row items-center gap-3">
         {!isDelete ? (
           isPassword ? (
-            <button className="px-4 py-2 text-[#DF1111] text-base !font-semibold border border-[#DF1111] rounded-lg hover:bg-[#DF1111] hover:text-white transition">
+            <button className="px-4 py-2 text-[#FF3B30] text-base !font-semibold border border-[#FF3B30] rounded-lg hover:bg-[#FF3B30] hover:text-white transition">
               Reset Password
             </button>
           ) : !stacked ? (
@@ -127,7 +127,7 @@ const DataRow: React.FC<{
             </span>
           ) : null
         ) : (
-          <button className="px-4 py-2 text-[#DF1111] text-base !font-semibold border border-[#DF1111] rounded-lg hover:bg-[#DF1111] hover:text-white transition">
+          <button className="px-4 py-2 text-[#FF3B30] text-base !font-semibold border border-[#FF3B30] rounded-lg hover:bg-[#FF3B30] hover:text-white transition">
             Delete
           </button>
         )}
@@ -137,7 +137,7 @@ const DataRow: React.FC<{
           <button
             onClick={onToggle}
             className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
-              toggle ? "bg-green-500" : "bg-gray-400"
+              toggle ? "bg-[#34C759]" : "bg-[#FF3B30]"
             }`}
           >
             <div
