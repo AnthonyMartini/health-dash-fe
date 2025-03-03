@@ -9,13 +9,17 @@ const App: React.FC = () => {
   return (
     <Router>
       <Routes>
-        {/* Use Layout to wrap the main routes */}
-        <Route path="/" element={<Layout />}>
+        {/* Routes with Sidebar */}
+        <Route path="/" element={<Layout showSideBar={true} />}>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
-          <Route path="profile" element={<Profile />} />
           <Route path="workout-plan" element={<WorkoutPlan />} />
           <Route path="*" element={<Dashboard />} />
+        </Route>
+
+        {/* Profile Route without Sidebar */}
+        <Route path="profile" element={<Layout showSideBar={false} />}>
+          <Route index element={<Profile />} />
         </Route>
       </Routes>
     </Router>
