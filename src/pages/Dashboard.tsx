@@ -48,39 +48,57 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
         <h3 className="text-md font-semibold text-[#5C6670] h-[40px]">
           Here is your health overview for the day:
         </h3>
-        <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
-          <Card
-            metric="Calories Burnt"
-            value={858}
-            icon={caloriesIcon}
-            trend={13.1}
-          />
-          <Card metric="Steps" value={858} icon={stepsIcon} trend={-2.1} />
-          <Card
-            metric="Sleep Duration"
-            value={858}
-            icon={sleepIcon}
-            trend={1.8}
-          />
-          <Card
-            metric="Water Intake"
-            value={858}
-            icon={waterIcon}
-            trend={5.3}
-          />
-          <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-            <span className="text-[#5C6670] text-lg">Weight</span>
-            <div className="w-full flex-1 border-2 rounded-lg border-blue-400">
-              <img
-                src={chartImage}
-                title="fdsafds"
-                className="w-full h-full"
-              ></img>
+        <div>
+          <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
+            <Card
+              metric="Calories Burnt"
+              value={858}
+              icon={caloriesIcon}
+              trend={13.1}
+            />
+            <Card metric="Steps" value={858} icon={stepsIcon} trend={-2.1} />
+            <Card
+              metric="Sleep Duration"
+              value={858}
+              icon={sleepIcon}
+              trend={1.8}
+            />
+            <Card
+              metric="Water Intake"
+              value={858}
+              icon={waterIcon}
+              trend={5.3}
+            />
+          </div>
+          <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
+            <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
+              <span className="text-[#5C6670] text-lg">Weight</span>
+              <div className="w-full flex-1 border-2 rounded-lg border-blue-400">
+                <img
+                  src={chartImage}
+                  title="fdsafds"
+                  className="w-full h-full"
+                ></img>
+              </div>
+            </div>
+            <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
+              <span className="text-[#5C6670] text-lg">Macros</span>
+              <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
             </div>
           </div>
-          <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-            <span className="text-[#5C6670] text-lg">Macros</span>
-            <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
+          <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
+            <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
+              <span className="text-[#5C6670] text-lg">
+                Today's Consumption
+              </span>
+              <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
+            </div>
+            <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
+              <span className="text-[#5C6670] text-lg">
+                Today's Workout Plan
+              </span>
+              <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
+            </div>
           </div>
         </div>
       </div>
