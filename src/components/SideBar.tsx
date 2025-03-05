@@ -4,11 +4,11 @@ import { LuLayoutDashboard } from "react-icons/lu";
 import { CgGym } from "react-icons/cg";
 
 interface SideBarProps {
-  Page?: string;
+  SelectedPage?: string;
   Goals?: object; //need shape?
 }
 
-const SideBar: React.FC<SideBarProps> = ({}) => {
+const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
   const navigate = useNavigate();
   const buttons = [
     {
@@ -29,8 +29,8 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
       {buttons.map((item) => (
         <button
           className={`${
-            item.selected
-              ? "bg-[#FCE9E9] hover:bg-[#ffe2e2] text-[#DF1111]"
+            item.page === SelectedPage
+              ? "bg-[#FCE9E9] hover:bg-[#ffcccc] text-[#DF1111]"
               : "bg-slate-200 hover:bg-slate-300 text-black"
           }  w-[230px] h-[44px] rounded-[10px]  flex gap-[10px] items-center p-2 cursor-pointer`}
           onClick={() => navigate(item.path)}

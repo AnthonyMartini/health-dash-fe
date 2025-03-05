@@ -42,7 +42,7 @@ const Card: React.FC<CardProps> = ({ metric, value, icon, trend }) => {
 const Dashboard: React.FC<DashboardProps> = ({}) => {
   return (
     <div className="h-full w-full flex ">
-      <SideBar />
+      <SideBar SelectedPage="Dashboard" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-100 overflow-y-scroll">
         <div>
           <h1 className="text-3xl font-bold h-[40px]">Welcome Back, Peter</h1>

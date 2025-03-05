@@ -8,7 +8,7 @@ interface WorkoutPlanProps {
 const WorkoutPlan: React.FC<WorkoutPlanProps> = ({}) => {
   return (
     <div className="h-full w-full flex">
-      <SideBar />
+      <SideBar SelectedPage="Workout Plan" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-100">
         <div>
           <h1 className="text-3xl font-bold h-[40px]">Welcome Back, Peter</h1>
