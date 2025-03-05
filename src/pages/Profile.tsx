@@ -6,6 +6,7 @@ import { AiFillPhone } from "react-icons/ai";
 import { BiCalendar, BiMaleFemale } from "react-icons/bi";
 import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
+import { HiThumbUp } from "react-icons/hi"; // Icon for achievements
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ const Profile: React.FC = () => {
 
   return (
     <div className="flex flex-col bg-gray-100 min-h-screen w-full px-4 py-8">
-      {/* Back Button - Responsive */}
+      {/* Back Button */}
       <button
         onClick={() => navigate("/dashboard")}
         className="mb-6 flex items-center gap-2 text-gray-700 hover:text-gray-900 text-base sm:text-lg md:text-xl font-medium transition"
@@ -22,7 +23,6 @@ const Profile: React.FC = () => {
         <FaArrowLeft className="text-lg sm:text-xl md:text-2xl" />
         <span>Back</span>
       </button>
-
 
       {/* Profile Header */}
       <div className="flex flex-col md:flex-row items-center text-center md:text-left md:justify-start w-full gap-6 md:gap-10 border-b border-gray-200 pb-6">
@@ -82,11 +82,42 @@ const Profile: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Achievements Section */}
+      <AchievementsSection />
     </div>
   );
 };
 
-// Reusable DataRow Component
+// 🏆 Achievements Section
+const AchievementsSection: React.FC = () => {
+  return (
+    <div className="mt-10 w-full">
+      <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">Achievements</h2>
+
+      {/* Responsive Achievements Grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
+        {/* Repeat the "Yay" achievement 15 times */}
+        {Array.from({ length: 15 }).map((_, index) => (
+          <AchievementCard key={index} title="Yay" icon={<HiThumbUp className="text-yellow-400 text-2xl" />} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
+// 🏆 Individual Achievement Card
+const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({ title, icon }) => {
+  return (
+    <div className="flex flex-col items-center justify-center bg-gray-200 rounded-lg w-40 h-24 p-4 shadow-md">
+      {icon}
+      <span className="text-sm font-medium mt-2">{title}</span>
+    </div>
+  );
+};
+
+// 📌 Reusable DataRow Component
 const DataRow: React.FC<{
   icon: React.ReactNode;
   label: string;
