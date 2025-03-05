@@ -25,39 +25,64 @@ const Profile: React.FC = () => {
 
           {/* User Name */}
           <div className="flex flex-col items-center md:items-start">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">Peter Griffin</h2>
+            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
+              Peter Griffin
+            </h2>
           </div>
         </div>
 
         {/* User Information Section */}
         <div className="w-full mt-6">
-          <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">User Information</h2>
+          <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+            User Information
+          </h2>
 
           {/* User Data Rows */}
           <div className="flex flex-col gap-4 w-full">
-            <DataRow icon={<FaRegIdCard />} label="User ID" value="123456789" isBold isMasked />
+            <DataRow
+              icon={<FaRegIdCard />}
+              label="User ID"
+              value="123456789"
+              isBold
+              isMasked
+            />
             <DataRow icon={<FaLock />} label="Password" value="" isPassword />
-            <DataRow 
-              icon={<MdEmail />} 
-              label="Email" 
-              value="petergriffin@mail.com" 
-              stacked 
-              isBold 
-              toggle={emailToggle} 
-              onToggle={() => setEmailToggle(!emailToggle)} 
+            <DataRow
+              icon={<MdEmail />}
+              label="Email"
+              value="petergriffin@mail.com"
+              stacked
+              isBold
+              toggle={emailToggle}
+              onToggle={() => setEmailToggle(!emailToggle)}
             />
-            <DataRow 
-              icon={<AiFillPhone />} 
-              label="Phone" 
-              value="+1 (111) 111-1111" 
-              stacked 
-              isBold 
-              toggle={phoneToggle} 
-              onToggle={() => setPhoneToggle(!phoneToggle)} 
+            <DataRow
+              icon={<AiFillPhone />}
+              label="Phone"
+              value="+1 (111) 111-1111"
+              stacked
+              isBold
+              toggle={phoneToggle}
+              onToggle={() => setPhoneToggle(!phoneToggle)}
             />
-            <DataRow icon={<BiCalendar />} label="Birth Date" value="Feb 11, 2025" isBold />
-            <DataRow icon={<BiMaleFemale />} label="Gender" value="Male" isBold />
-            <DataRow icon={<GiBodyHeight />} label="Height" value="190.5 cm" isBold />
+            <DataRow
+              icon={<BiCalendar />}
+              label="Birth Date"
+              value="Feb 11, 2025"
+              isBold
+            />
+            <DataRow
+              icon={<BiMaleFemale />}
+              label="Gender"
+              value="Male"
+              isBold
+            />
+            <DataRow
+              icon={<GiBodyHeight />}
+              label="Height"
+              value="190.5 cm"
+              isBold
+            />
             <DataRow icon={<GiWeight />} label="Weight" value="122 kg" isBold />
             <DataRow icon={<GiWeight />} label="BMI" value="33.6" isBold />
 
@@ -91,8 +116,17 @@ const DataRow: React.FC<{
   onToggle?: () => void; // Toggle function
   isMasked?: boolean; // Determines if value should be masked
 }> = ({
-  icon, label, value, isPassword = false, isDelete = false, stacked = false, 
-  isBold = false, noBoldValue = false, toggle, onToggle, isMasked
+  icon,
+  label,
+  value,
+  isPassword = false,
+  isDelete = false,
+  stacked = false,
+  isBold = false,
+  noBoldValue = false,
+  toggle,
+  onToggle,
+  isMasked,
 }) => {
   return (
     <div className="group flex flex-row justify-between items-center p-4 bg-gray-100 rounded-lg w-full shadow-sm">
@@ -100,9 +134,19 @@ const DataRow: React.FC<{
       <div className="flex flex-row items-center gap-3">
         <span className="text-[#C69DE6] text-lg">{icon}</span>
         <div className="flex flex-col">
-          <span className={`text-gray-800 text-base ${isDelete ? "font-semibold" : ""}`}>{label}</span>
+          <span
+            className={`text-gray-800 text-base ${
+              isDelete ? "font-semibold" : ""
+            }`}
+          >
+            {label}
+          </span>
           {(isDelete || stacked) && (
-            <p className={`text-gray-800 text-base ${isBold && !noBoldValue ? "font-semibold" : ""}`}>
+            <p
+              className={`text-gray-800 text-base ${
+                isBold && !noBoldValue ? "font-semibold" : ""
+              }`}
+            >
               {value}
             </p>
           )}
@@ -117,10 +161,16 @@ const DataRow: React.FC<{
               Reset Password
             </button>
           ) : !stacked ? (
-            <span className={`text-gray-800 text-base ${isBold ? "!font-semibold" : ""}`}>
+            <span
+              className={`text-gray-800 text-base ${
+                isBold ? "!font-semibold" : ""
+              }`}
+            >
               {isMasked ? (
                 <span className="group-hover:hidden">*********</span>
-              ) : value}
+              ) : (
+                value
+              )}
               {isMasked && (
                 <span className="hidden group-hover:inline">{value}</span>
               )}

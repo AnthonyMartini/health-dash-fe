@@ -10,16 +10,12 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         {/* Routes with Sidebar */}
-        <Route path="/" element={<Layout showSideBar={true} />}>
+        <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
+          <Route path="profile" element={<Profile />}></Route>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="workout-plan" element={<WorkoutPlan />} />
           <Route path="*" element={<Dashboard />} />
-        </Route>
-
-        {/* Profile Route without Sidebar */}
-        <Route path="profile" element={<Layout showSideBar={false} />}>
-          <Route index element={<Profile />} />
         </Route>
       </Routes>
     </Router>

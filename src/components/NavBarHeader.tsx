@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import { IoIosNotifications } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
+import APPIconSVG from "../assets/AppIcon.svg";
 
 interface NavBarHeaderProps {
   logoText?: string;
@@ -9,8 +11,6 @@ interface NavBarHeaderProps {
 }
 
 const NavBarHeader: React.FC<NavBarHeaderProps> = ({
-  logoText = "blah blah logo",
-
   onNotificationClick = () => console.log("Notifications clicked"),
   onProfileClick = () => console.log("Profile clicked"),
 }) => {
@@ -19,14 +19,12 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   return (
     <div className="z-10 w-full h-[95px] p-6 bg-white flex items-center justify-between shadow-md sticky top-0">
-      <span className="font-bold text-2xl text-slate-900">{logoText}</span>
+      <div className="flex gap-2 font-bold text-2xl text-[#e61313]">
+        <img src={APPIconSVG} alt="My Icon" width="50" />
+        <span>Swag Productions</span>
+      </div>
       <div className="flex items-center gap-8">
-        <img
-          src="https://dashboard.codeparrot.ai/api/image/Z7kKXFCHtJJZ6v_r/my-icon.png"
-          alt="Notifications"
-          className="w-7 h-7 p-1 cursor-pointer hover:bg-gray-300 rounded-full"
-          onClick={onNotificationClick}
-        />
+        <IoIosNotifications className="w-7 h-7 p-1 cursor-pointer hover:bg-gray-300 rounded-full" />
         {/* Profile Dropdown */}
         <div
           className="relative"

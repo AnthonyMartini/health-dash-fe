@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import dashboardIcon from "../assets/dashboard.svg";
-import workoutPlanIcon from "../assets/workoutPlan.svg";
+import { LuLayoutDashboard } from "react-icons/lu";
+import { CgGym } from "react-icons/cg";
+
 interface SideBarProps {
   Page?: string;
   Goals?: object; //need shape?
@@ -12,19 +13,19 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
   const buttons = [
     {
       page: "Dashboard",
-      icon: dashboardIcon,
+      icon: <LuLayoutDashboard />,
       selected: true,
       path: "/dashboard",
     },
     {
       page: "Workout Plan",
-      icon: workoutPlanIcon,
+      icon: <CgGym />,
       selected: false,
       path: "/workout-plan",
     },
   ];
   return (
-    <div className="h-fit flex-shrink-0 w-[270px] flex flex-col items-center gap-[10px] py-[20px] sticky top-[95px]">
+    <div className=" h-full flex-shrink-0 w-[270px] flex flex-col items-center gap-[10px] py-[20px] sticky top-[95px] ">
       {buttons.map((item) => (
         <button
           className={`${
@@ -34,15 +35,7 @@ const SideBar: React.FC<SideBarProps> = ({}) => {
           }  w-[230px] h-[44px] rounded-[10px]  flex gap-[10px] items-center p-2 cursor-pointer`}
           onClick={() => navigate(item.path)}
         >
-          <div className="w-6 h-6">
-            {item.icon && (
-              <img
-                src={item.icon}
-                alt={`${item.page} icon`}
-                className="w-6 h-6"
-              />
-            )}
-          </div>
+          {item.icon}
           {item.page}
         </button>
       ))}

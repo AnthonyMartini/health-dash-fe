@@ -2,24 +2,13 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./components/NavBarHeader";
 
-import SideBar from "./components/SideBar";
-
-interface LayoutProps {
-  showSideBar: boolean;
-}
-const Layout: React.FC<LayoutProps> = ({ showSideBar }) => {
+const Layout: React.FC = ({}) => {
   return (
-    <div className="w-full h-screen flex flex-col ">
+    <div className="w-full h-full flex flex-col ">
       {/* Sidebar */}
       <Header />
-
-      <div className="flex-1 flex ">
-        {/* Header */}
-        {showSideBar && <SideBar />}
-
-        <div className="flex-1 bg-[#EFF0F0] p-4">
-          <Outlet />
-        </div>
+      <div className="flex-1  bg-[#EFF0F0] overflow-hidden clip">
+        <Outlet />
       </div>
     </div>
   );
