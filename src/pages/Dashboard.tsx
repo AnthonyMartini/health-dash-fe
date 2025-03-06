@@ -3,12 +3,51 @@ import { IoFootsteps } from "react-icons/io5";
 import { IoIosWater } from "react-icons/io";
 import { GiNightSleep } from "react-icons/gi";
 import { FaFire } from "react-icons/fa";
+import { FaBowlFood } from "react-icons/fa6";
+import { RiDrinks2Fill } from "react-icons/ri";
 import SideBar from "../components/SideBar";
+import { BiDrink } from "react-icons/bi";
 
 interface DashboardProps {
   Page?: string;
   Goals?: object; //need shape?
 }
+
+const Consumption = [
+  {
+    type: "food",
+    name: "Eggs",
+    calories: 352,
+    protein: 30,
+    carbs: 20,
+    fat: 20,
+  },
+  {
+    type: "drink",
+    name: "Protein Shake",
+    calories: 352,
+    protein: 30,
+    carbs: 20,
+    fat: 20,
+  },
+];
+
+const Workouts = [
+  {
+    name: "Cardio Plan",
+    type: "cardio",
+    items: [{ name: "Treadmill", number: 30 }],
+  },
+  {
+    name: "God-Like Pull",
+    type: "strength",
+    items: [
+      { name: "Cable Pull-downs", number: 3 },
+      { name: "Cable Rows", number: 3 },
+      { name: "Bicep Curls", number: 3 },
+    ],
+  },
+];
 
 //Define Card Array
 interface CardProps {
@@ -78,28 +117,77 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
             </div>
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
               <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <span className="text-[#5C6670] text-lg">Weight</span>
+                <span className="text-[#5C6670] text-lg font-semibold">
+                  Weight
+                </span>
                 <div className="w-full flex-1 border-2 rounded-lg border-blue-400">
                   <IoIosWater />
                 </div>
               </div>
               <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <span className="text-[#5C6670] text-lg">Macros</span>
+                <span className="text-[#5C6670] text-lg font-semibold">
+                  Macros
+                </span>
                 <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
               </div>
             </div>
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
               <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <span className="text-[#5C6670] text-lg">
-                  Today's Consumption
-                </span>
-                <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#5C6670] text-lg font-semibold">
+                    Today's Consumption
+                  </span>
+                  <span className="text-red-500">+ Add</span>
+                </div>
+                <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
+                  {Consumption.map((item) => (
+                    <div className="w-full h-[50px] flex items-center shadow-lg p-2 gap-1">
+                      {item.type === "food" ? (
+                        <FaBowlFood fill="#964B00" />
+                      ) : (
+                        <RiDrinks2Fill fill="blue" />
+                      )}
+                      <div className="flex-1 ">
+                        <span className="font-semibold">{item.name}</span>
+                        <div className="flex text-sm font-bold gap-2 ">
+                          <span className="text-[#FFA500]">
+                            {item.protein}g protein
+                          </span>
+                          <span className="text-[#007AFF]">
+                            {item.carbs}g carbs
+                          </span>
+                          <span className="text-[#AF52DE]">
+                            {item.fat}g fat
+                          </span>
+                        </div>
+                      </div>
+                      <span className="font-bold ">{item.calories} kCal </span>
+                    </div>
+                  ))}
+                </div>
               </div>
               <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <span className="text-[#5C6670] text-lg">
-                  Today's Workout Plan
-                </span>
-                <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#5C6670] text-lg font-semibold">
+                    Today's Workout Plan
+                  </span>
+                  <span className="text-red-500">Edit Workout Plan</span>
+                </div>
+                <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
+                  {Workouts.map((workout) => (
+                    <div className="w-full h-[50px] flex items-center shadow-lg p-2 gap-1">
+                      {/*item.type === "food" ? (
+                        <FaBowlFood fill="#964B00" />
+                      ) : (
+                        <RiDrinks2Fill fill="blue" />
+                      )*/}
+                      <div className="flex-1 ">
+                        <span className="font-semibold">{workout.name}</span>
+                        <div className="flex text-sm font-bold gap-2 "></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

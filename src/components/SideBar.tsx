@@ -32,7 +32,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
             item.page === SelectedPage
               ? "bg-[#FCE9E9] hover:bg-[#ffcccc] text-[#DF1111]"
               : "bg-slate-200 hover:bg-slate-300 text-black"
-          }  w-[230px] h-[44px] rounded-[10px]  flex gap-[10px] items-center p-2 cursor-pointer`}
+          }  w-[230px] h-[44px] rounded-[10px] shadow-lg flex gap-[10px] items-center p-2 cursor-pointer`}
           onClick={() => navigate(item.path)}
         >
           {item.icon}
