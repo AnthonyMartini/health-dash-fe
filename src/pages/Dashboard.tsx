@@ -47,35 +47,75 @@ const Workouts = [
       { name: "Cable Pull-downs", number: 3 },
       { name: "Cable Rows", number: 3 },
       { name: "Bicep Curls", number: 3 },
+      { name: "Rear Delt Machine", number: 2 },
     ],
   },
 ];
 
 //Define Card Array
-interface CardProps {
+interface MetricCardProps {
   metric: string;
+  units: string;
   value: number;
   icon: ReactElement;
   trend: number;
 }
-const Card: React.FC<CardProps> = ({ metric, value, icon, trend }) => {
+const MetricCard: React.FC<MetricCardProps> = ({
+  metric,
+  value,
+  icon,
+  trend,
+  units,
+}) => {
   return (
-    <div className="sm:w-[180px] w-[145px] h-[130px] shadow-lg rounded-xl bg-white p-3 flex flex-col">
+    <div className="w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] shadow-lg rounded-xl bg-white p-3 flex flex-col">
       <div className="w-full h-[30px] text-lg flex text-[#5C6670] ">
         <span className={`flex-1 text-[16px] sm:text-[18px]`}>{metric}</span>
-        <div className="hidden sm:hidden">{icon}</div>
+        <div className="hidden sm:block">{icon}</div>
       </div>
-      <div className="w-full flex-1 text-4xl font-bold items-center flex">
-        {value}
+      <div className="w-full flex-1  items-end flex gap-1 ">
+        <span className="text-3xl sm:text-4xl font-bold">{value}</span>
+        <span className="text-slate-500 font-bold">{units}</span>
       </div>
       <div
-        className={`w-full h-[30px] text-[12px] font-bold flex items-center ${
+        className={`w-full h-[30px] text-[10px] sm:text-[12px] font-bold flex items-center ${
           trend > 0 ? "text-green-400" : "text-red-400"
         } `}
       >
         {trend > 0 ? "↑ " : "↓ "}
         {trend}% from yesterday
       </div>
+    </div>
+  );
+};
+interface ContentCardProps {
+  content: ReactElement;
+  title: string;
+  actionText?: string;
+  action?: () => null;
+}
+const ContentCard: React.FC<ContentCardProps> = ({
+  content,
+  title,
+  actionText,
+  action,
+}) => {
+  return (
+    <div className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
+      <div className="flex items-center justify-between">
+        <span className="text-[#5C6670] text-[16px] sm:text-lg font-semibold">
+          {title}
+        </span>
+        {actionText && (
+          <span
+            className="text-red-500 text-[13px] sm:text-md  hover:underline hover:cursor-pointer"
+            onClick={action}
+          >
+            {actionText}
+          </span>
+        )}
+      </div>
+      <div className="w-full flex-1  rounded-lg">{content}</div>
     </div>
   );
 };
@@ -86,130 +126,122 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
       <SideBar SelectedPage="Dashboard" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-100 overflow-y-scroll">
         <div>
-          <h1 className="text-3xl font-bold h-[40px]">Welcome Back, Peter</h1>
-          <h3 className="text-md font-semibold text-[#5C6670] h-[40px]">
+          <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
+            Welcome Back, Peter
+          </h1>
+          <h3 className=" text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
             Here is your health overview for the day:
           </h3>
           <div>
-            <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
-              <Card
+            <div className="flex flex-row gap-[20px] w-full  justify-center flex-wrap ">
+              <MetricCard
                 metric="Calories Burnt"
                 value={858}
                 icon={<FaFire fill="#fc7703" />}
                 trend={13.1}
+                units=""
               />
-              <Card
+              <MetricCard
                 metric="Steps"
-                value={858}
+                value={9912}
                 icon={<IoFootsteps />}
                 trend={-2.1}
+                units=""
               />
-              <Card
+              <MetricCard
                 metric="Sleep Duration"
-                value={858}
+                value={7.6}
                 icon={<GiNightSleep fill="#c603fc" />}
                 trend={1.8}
+                units="h"
               />
-              <Card
+              <MetricCard
                 metric="Water Intake"
-                value={858}
+                value={2.1}
                 icon={<IoIosWater fill="#5555FF" />}
                 trend={5.3}
+                units="L"
               />
             </div>
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
-              <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <span className="text-[#5C6670] text-lg font-semibold">
-                  Weight
-                </span>
-                <div className="w-full flex-1 border-2 rounded-lg border-blue-400">
-                  <IoIosWater />
-                </div>
-              </div>
-              <div className="sm:w-[380px] sm:h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <span className="text-[#5C6670] text-lg font-semibold">
-                  Macros
-                </span>
-                <div className="w-full flex-1 border-2 rounded-lg border-blue-400"></div>
-              </div>
+              <ContentCard title="Weight" content={<IoIosWater />} />
+              <ContentCard title="Macros" content={<IoIosWater />} />
             </div>
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
-              <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#5C6670] text-lg font-semibold">
-                    Today's Consumption
-                  </span>
-                  <span className="text-red-500">+ Add</span>
-                </div>
-                <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
-                  {Consumption.map((item) => (
-                    <div className="w-full h-[50px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg">
-                      {item.type === "food" ? (
-                        <FaBowlFood fill="#964B00" />
-                      ) : (
-                        <RiDrinks2Fill fill="blue" />
-                      )}
-                      <div className="flex-1 ">
-                        <span className="font-semibold">{item.name}</span>
-                        <div className="flex text-sm font-bold gap-2 ">
-                          <span className="text-[#FFA500]">
-                            {item.protein}g protein
-                          </span>
-                          <span className="text-[#007AFF]">
-                            {item.carbs}g carbs
-                          </span>
-                          <span className="text-[#AF52DE]">
-                            {item.fat}g fat
-                          </span>
-                        </div>
-                      </div>
-                      <span className="font-bold ">{item.calories} kCal </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
-                <div className="flex items-center justify-between">
-                  <span className="text-[#5C6670] text-lg font-semibold">
-                    Today's Workout Plan
-                  </span>
-                  <span className="text-red-500">Edit Workout Plan</span>
-                </div>
-                <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
-                  {Workouts.map((workout) => (
-                    <div className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg">
-                      <div className="flex-1 flex">
-                        <span className="font-semibold flex-1">
-                          {workout.name}
-                        </span>
-                        <span
-                          className={`flex-1 ${
-                            workout.status === "Completed"
-                              ? "text-green-600"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {workout.status}
-                        </span>
-                        <span className=" flex-1 text-right text-red-500">
-                          Log Plan
-                        </span>
-                      </div>
-                      <div className="flex flex-col text-sm font-bold gap-2 ">
-                        {workout.items.map((item) => (
-                          <div className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2">
-                            <span className="flex-1">{item.name}</span>
-                            <span className="">
-                              {item.number}{" "}
-                              {workout.type === "cardio" ? "minutes" : "sets"}
+              <ContentCard
+                title="Today's Consumption"
+                actionText="+ Add"
+                content={
+                  <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
+                    {Consumption.map((item) => (
+                      <div className="w-full h-[50px] text-[11px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg ">
+                        {item.type === "food" ? (
+                          <FaBowlFood fill="#964B00" />
+                        ) : (
+                          <RiDrinks2Fill fill="blue" />
+                        )}
+                        <div className="flex-1 ">
+                          <span className="font-semibold">{item.name}</span>
+                          <div className="flex font-bold gap-2 ">
+                            <span className="text-[#FFA500]">
+                              {item.protein}g protein
+                            </span>
+                            <span className="text-[#007AFF]">
+                              {item.carbs}g carbs
+                            </span>
+                            <span className="text-[#AF52DE]">
+                              {item.fat}g fat
                             </span>
                           </div>
-                        ))}
+                        </div>
+                        <span className="font-bold ">
+                          {item.calories} kCal{" "}
+                        </span>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+                    ))}
+                  </div>
+                }
+              />
+              <ContentCard
+                title="Today's Workout Plan"
+                actionText="Edit Workout Plan"
+                content={
+                  <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2 ">
+                    {Workouts.map((workout) => (
+                      <div className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg ">
+                        <div className="flex-1 flex text-[14px] sm:text-[16px]">
+                          <span className="font-semibold flex-1">
+                            {workout.name}
+                          </span>
+                          <span
+                            className={`flex-1 ${
+                              workout.status === "Completed"
+                                ? "text-green-600"
+                                : "text-red-500"
+                            }`}
+                          >
+                            {workout.status}
+                          </span>
+                          <span className=" flex-1 text-right text-red-500 hover:underline hover:cursor-pointer">
+                            Log Plan
+                          </span>
+                        </div>
+                        <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px]">
+                          {workout.items.map((item) => (
+                            <div className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2">
+                              <span className="flex-1">{item.name}</span>
+                              <span className="">
+                                {item.number}{" "}
+                                {workout.type === "cardio" ? "minutes" : "sets"}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                }
+              />
             </div>
           </div>
         </div>
