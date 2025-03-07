@@ -19,8 +19,8 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   return (
     <div className="z-10 w-full h-[95px] p-6 bg-white flex items-center justify-between shadow-md sticky top-0">
-      <div className="flex gap-2 font-bold text-2xl text-[#e61313]">
-        <img src={APPIconSVG} alt="My Icon" width="50" />
+      <div className="flex gap-2 font-bold text-xl sm:text-2xl text-[#e61313]">
+        <img src={APPIconSVG} alt="My Icon" className="w-[30px] sm:w-[50px]" />
         <span>Swag Productions</span>
       </div>
       <div className="flex items-center gap-8">

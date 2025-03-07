@@ -25,14 +25,14 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
     },
   ];
   return (
-    <div className=" h-full flex-shrink-0 w-[270px] flex flex-col items-center gap-[10px] py-[20px] sticky top-[95px] ">
+    <div className=" h-[60px] md:h-full flex-shrink-0 md:w-[270px] w-full flex md:flex-col items-center gap-[10px] py-[20px] justify-center md:justify-start ">
       {buttons.map((item) => (
         <button
           className={`${
             item.page === SelectedPage
               ? "bg-[#FCE9E9] hover:bg-[#ffcccc] text-[#DF1111]"
               : "bg-slate-200 hover:bg-slate-300 text-black"
-          }  w-[230px] h-[44px] rounded-[10px] shadow-lg flex gap-[10px] items-center p-2 cursor-pointer`}
+          }  sm:w-[230px] w-[150px] h-[44px] rounded-[10px] shadow-lg flex gap-[10px] items-center p-2 cursor-pointer`}
           onClick={() => navigate(item.path)}
         >
           {item.icon}

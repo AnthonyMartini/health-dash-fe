@@ -36,11 +36,13 @@ const Workouts = [
   {
     name: "Cardio Plan",
     type: "cardio",
+    status: "Completed",
     items: [{ name: "Treadmill", number: 30 }],
   },
   {
     name: "God-Like Pull",
     type: "strength",
+    status: "In-Progress",
     items: [
       { name: "Cable Pull-downs", number: 3 },
       { name: "Cable Rows", number: 3 },
@@ -58,10 +60,10 @@ interface CardProps {
 }
 const Card: React.FC<CardProps> = ({ metric, value, icon, trend }) => {
   return (
-    <div className="w-[180px] h-[130px] shadow-lg rounded-xl bg-white p-4 flex flex-col">
+    <div className="sm:w-[180px] w-[145px] h-[130px] shadow-lg rounded-xl bg-white p-3 flex flex-col">
       <div className="w-full h-[30px] text-lg flex text-[#5C6670] ">
-        <span className="flex-1">{metric}</span>
-        {icon}
+        <span className={`flex-1 text-[16px] sm:text-[18px]`}>{metric}</span>
+        <div className="hidden sm:hidden">{icon}</div>
       </div>
       <div className="w-full flex-1 text-4xl font-bold items-center flex">
         {value}
@@ -80,7 +82,7 @@ const Card: React.FC<CardProps> = ({ metric, value, icon, trend }) => {
 
 const Dashboard: React.FC<DashboardProps> = ({}) => {
   return (
-    <div className="h-full w-full flex ">
+    <div className="h-full w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-100 overflow-y-scroll">
         <div>
@@ -124,7 +126,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                   <IoIosWater />
                 </div>
               </div>
-              <div className="w-[380px] h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
+              <div className="sm:w-[380px] sm:h-[380px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
                 <span className="text-[#5C6670] text-lg font-semibold">
                   Macros
                 </span>
@@ -141,7 +143,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 </div>
                 <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
                   {Consumption.map((item) => (
-                    <div className="w-full h-[50px] flex items-center shadow-lg p-2 gap-1">
+                    <div className="w-full h-[50px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg">
                       {item.type === "food" ? (
                         <FaBowlFood fill="#964B00" />
                       ) : (
@@ -175,15 +177,34 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 </div>
                 <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
                   {Workouts.map((workout) => (
-                    <div className="w-full h-[50px] flex items-center shadow-lg p-2 gap-1">
-                      {/*item.type === "food" ? (
-                        <FaBowlFood fill="#964B00" />
-                      ) : (
-                        <RiDrinks2Fill fill="blue" />
-                      )*/}
-                      <div className="flex-1 ">
-                        <span className="font-semibold">{workout.name}</span>
-                        <div className="flex text-sm font-bold gap-2 "></div>
+                    <div className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg">
+                      <div className="flex-1 flex">
+                        <span className="font-semibold flex-1">
+                          {workout.name}
+                        </span>
+                        <span
+                          className={`flex-1 ${
+                            workout.status === "Completed"
+                              ? "text-green-600"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {workout.status}
+                        </span>
+                        <span className=" flex-1 text-right text-red-500">
+                          Log Plan
+                        </span>
+                      </div>
+                      <div className="flex flex-col text-sm font-bold gap-2 ">
+                        {workout.items.map((item) => (
+                          <div className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2">
+                            <span className="flex-1">{item.name}</span>
+                            <span className="">
+                              {item.number}{" "}
+                              {workout.type === "cardio" ? "minutes" : "sets"}
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
