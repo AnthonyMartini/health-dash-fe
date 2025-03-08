@@ -1,12 +1,13 @@
-import React, { ReactElement } from "react";
+import React, { ReactElement, useState } from "react";
 import { IoFootsteps } from "react-icons/io5";
 import { IoIosWater } from "react-icons/io";
 import { GiNightSleep } from "react-icons/gi";
 import { FaFire } from "react-icons/fa";
 import { FaBowlFood } from "react-icons/fa6";
 import { RiDrinks2Fill } from "react-icons/ri";
+import { CiEdit } from "react-icons/ci";
 import SideBar from "../components/SideBar";
-import { BiDrink } from "react-icons/bi";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardProps {
   Page?: string;
@@ -59,6 +60,7 @@ interface MetricCardProps {
   value: number;
   icon: ReactElement;
   trend: number;
+  setMetric: (metric: string) => void;
 }
 const MetricCard: React.FC<MetricCardProps> = ({
   metric,
@@ -66,6 +68,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   icon,
   trend,
   units,
+  setMetric,
 }) => {
   return (
     <div className="w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] shadow-lg rounded-xl bg-white p-3 flex flex-col">
@@ -75,7 +78,11 @@ const MetricCard: React.FC<MetricCardProps> = ({
       </div>
       <div className="w-full flex-1  items-end flex gap-1 ">
         <span className="text-3xl sm:text-4xl font-bold">{value}</span>
-        <span className="text-slate-500 font-bold">{units}</span>
+        {units && <span className="text-slate-500 font-bold">{units}</span>}
+        <CiEdit
+          onClick={() => setMetric(metric)}
+          className="w-[18px] h-[18px] cursor-pointer"
+        />
       </div>
       <div
         className={`w-full h-[30px] text-[10px] sm:text-[12px] font-bold flex items-center ${
@@ -92,7 +99,7 @@ interface ContentCardProps {
   content: ReactElement;
   title: string;
   actionText?: string;
-  action?: () => null;
+  action?: () => void;
 }
 const ContentCard: React.FC<ContentCardProps> = ({
   content,
@@ -121,6 +128,10 @@ const ContentCard: React.FC<ContentCardProps> = ({
 };
 
 const Dashboard: React.FC<DashboardProps> = ({}) => {
+  const [logMetric, setLogMetric] = useState("");
+  const [logConsumption, setLogConsumption] = useState(false);
+  const [logPlan, setLogPlan] = useState(false);
+  const navigate = useNavigate();
   return (
     <div className="h-full w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
@@ -140,6 +151,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 icon={<FaFire fill="#fc7703" />}
                 trend={13.1}
                 units=""
+                setMetric={() => setLogMetric("Calories")}
               />
               <MetricCard
                 metric="Steps"
@@ -147,6 +159,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 icon={<IoFootsteps />}
                 trend={-2.1}
                 units=""
+                setMetric={() => setLogMetric("Steps")}
               />
               <MetricCard
                 metric="Sleep Duration"
@@ -154,6 +167,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 icon={<GiNightSleep fill="#c603fc" />}
                 trend={1.8}
                 units="h"
+                setMetric={() => setLogMetric("Sleep")}
               />
               <MetricCard
                 metric="Water Intake"
@@ -161,20 +175,28 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 icon={<IoIosWater fill="#5555FF" />}
                 trend={5.3}
                 units="L"
+                setMetric={() => setLogMetric("Water")}
               />
             </div>
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
-              <ContentCard title="Weight" content={<IoIosWater />} />
-              <ContentCard title="Macros" content={<IoIosWater />} />
+              <ContentCard
+                title="Weight"
+                content={<div>Amazon Quicksight visual to be implemented</div>}
+              />
+              <ContentCard
+                title="Macros"
+                content={<div>Amazon Quicksight visual to be implemented</div>}
+              />
             </div>
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
               <ContentCard
                 title="Today's Consumption"
+                action={() => setLogConsumption(true)}
                 actionText="+ Add"
                 content={
                   <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
                     {Consumption.map((item) => (
-                      <div className="w-full h-[50px] text-[11px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg ">
+                      <div className="w-full h-[50px] text-[11px] sm:text-[14px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg ">
                         {item.type === "food" ? (
                           <FaBowlFood fill="#964B00" />
                         ) : (
@@ -205,6 +227,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
               <ContentCard
                 title="Today's Workout Plan"
                 actionText="Edit Workout Plan"
+                action={() => navigate("/workout-plan")}
                 content={
                   <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2 ">
                     {Workouts.map((workout) => (
@@ -222,7 +245,10 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                           >
                             {workout.status}
                           </span>
-                          <span className=" flex-1 text-right text-red-500 hover:underline hover:cursor-pointer">
+                          <span
+                            className=" flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
+                            onClick={() => setLogPlan(true)}
+                          >
                             Log Plan
                           </span>
                         </div>
@@ -246,6 +272,131 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
           </div>
         </div>
       </div>
+      {logMetric != "" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[200px] text-center relative ">
+            <div className="flex justify-end h-[30px] items-start">
+              <button
+                onClick={() => setLogMetric("")}
+                className=" text-red-500  hover:underline hover:cursor-pointer "
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 items-center">
+              <h2 className="text-2xl font-bold">Log Today's {logMetric}</h2>
+
+              <input
+                type="number"
+                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter a number"
+              />
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]">
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {logConsumption && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[270px] text-center relative ">
+            <div className="flex justify-end h-[30px] items-start">
+              <button
+                onClick={() => setLogConsumption(false)}
+                className=" text-red-500  hover:underline hover:cursor-pointer "
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 items-center">
+              <h2 className="text-2xl font-bold">Log Consumption</h2>
+              <div className="flex flex-col text-left w-full font-bold text-gray-700">
+                <label className="text-sm">Name</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                />
+              </div>
+
+              <div className="rounded-lg  w-full flex space-x-4 text-left font-bold ">
+                <div className="flex flex-col w-[80px] text-[#FFA500]">
+                  <label className="text-sm">Protein</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                  />
+                </div>
+
+                <div className="flex flex-col w-[80px] text-[#007AFF]">
+                  <label className="text-sm">Carbs</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                  />
+                </div>
+
+                <div className="flex flex-col w-[80px] text-[#AF52DE]">
+                  <label className="text-sm">Fat</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                  />
+                </div>
+
+                <div className="flex flex-col w-[80px] text-gray-700">
+                  <label className="text-sm">Calories</label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                  />
+                </div>
+              </div>
+
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]">
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {logPlan && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[200px] text-center relative ">
+            <div className="flex justify-end h-[30px] items-start">
+              <button
+                onClick={() => setLogPlan(false)}
+                className=" text-red-500  hover:underline hover:cursor-pointer "
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 items-center">
+              <h2 className="text-2xl font-bold">Log Today's {logMetric}</h2>
+
+              <input
+                type="number"
+                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter a number"
+              />
+              <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]">
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

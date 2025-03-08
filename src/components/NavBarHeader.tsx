@@ -11,7 +11,7 @@ interface NavBarHeaderProps {
 }
 
 const NavBarHeader: React.FC<NavBarHeaderProps> = ({
-  onNotificationClick = () => console.log("Notifications clicked"),
+  //onNotificationClick = () => console.log("Notifications clicked"),
   onProfileClick = () => console.log("Profile clicked"),
 }) => {
   const navigate = useNavigate();

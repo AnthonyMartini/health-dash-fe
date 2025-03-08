@@ -4,8 +4,18 @@ import Layout from "./Layout";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import WorkoutPlan from "./pages/WorkoutPlan";
+import { fetchAuthSession } from "aws-amplify/auth";
 
 const App: React.FC = () => {
+  async function currentSession() {
+    try {
+      const { accessToken, idToken } = (await fetchAuthSession()).tokens ?? {};
+      console.log(accessToken);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+  currentSession();
   return (
     <Router>
       <Routes>
