@@ -8,16 +8,16 @@ import { BsSuitHeartFill } from "react-icons/bs";
 
 // Single exercise item displayed on plan cards
 interface PlanItem {
-  label: string;      // e.g. "Bench Press"
-  detail: string;     // e.g. "3 sets" or "30 min"
-  color: string;      // background color for the chip
+  label: string; // e.g. "Bench Press"
+  detail: string; // e.g. "3 sets" or "30 min"
+  color: string; // background color for the chip
 }
 
 // A plan card: name, influencer, optional favorite, totalCal, items array
 interface Plan {
   name: string;
   influencer?: string; // e.g. "@TheRock"
-  favorite?: boolean;  // whether to show the heart icon
+  favorite?: boolean; // whether to show the heart icon
   totalCal: number;
   items: PlanItem[];
 }
@@ -87,9 +87,7 @@ const PopularPlans: Plan[] = [
     name: "Cardio Plan",
     influencer: "@Saitama",
     totalCal: 320,
-    items: [
-      { label: "Treadmill", detail: "30 min", color: "#E6EEFE" },
-    ],
+    items: [{ label: "Treadmill", detail: "30 min", color: "#E6EEFE" }],
   },
 ];
 
@@ -139,13 +137,18 @@ interface SmallPlanCardProps {
   plan: Plan;
   onAddToWeekPlan?: (planName: string) => void;
 }
-const SmallPlanCard: React.FC<SmallPlanCardProps> = ({ plan, onAddToWeekPlan }) => (
+const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
+  plan,
+  onAddToWeekPlan,
+}) => (
   <div className="w-full sm:w-[250px] bg-white shadow-md rounded-xl p-3 flex flex-col gap-2">
     {/* Title & Heart */}
     <div className="flex justify-between items-center">
       <span className="text-gray-600 font-semibold text-sm">
         {plan.name}{" "}
-        {plan.influencer && <span className="text-xs text-gray-500">by {plan.influencer}</span>}
+        {plan.influencer && (
+          <span className="text-xs text-gray-500">by {plan.influencer}</span>
+        )}
       </span>
       {plan.favorite && <BsSuitHeartFill className="text-red-500" />}
     </div>
@@ -184,7 +187,8 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({ plan, onAddToWeekPlan }) 
 /* ------------- MAIN PAGE ------------- */
 const WorkoutPlan: React.FC = () => {
   const navigate = useNavigate();
-  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyDayPlan[]>(initialWeeklyPlan);
+  const [weeklyPlan, setWeeklyPlan] =
+    useState<WeeklyDayPlan[]>(initialWeeklyPlan);
 
   // Modal for adding a plan
   const [showAddModal, setShowAddModal] = useState(false);
@@ -208,7 +212,7 @@ const WorkoutPlan: React.FC = () => {
 
   return (
     <div className="h-full w-full flex flex-col md:flex-row">
-      <SideBar SelectedPage="WorkoutPlan" />
+      <SideBar SelectedPage="Workout Plan" />
 
       <div className="flex-1 p-4 bg-gray-50 overflow-y-auto">
         <h1 className="text-2xl sm:text-3xl font-bold mb-2">Workout Plan</h1>
@@ -219,7 +223,9 @@ const WorkoutPlan: React.FC = () => {
         {/* SECTION 1: Your Favorite Plans */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-xl sm:text-2xl font-bold">Your Favorite Plans</h2>
+            <h2 className="text-xl sm:text-2xl font-bold">
+              Your Favorite Plans
+            </h2>
             <button
               onClick={() => navigate("/create-plan")}
               className="text-red-500 text-sm hover:underline"
@@ -242,12 +248,6 @@ const WorkoutPlan: React.FC = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl sm:text-2xl font-bold">Popular Plans</h2>
-            <button
-              onClick={() => navigate("/create-plan")}
-              className="text-red-500 text-sm hover:underline"
-            >
-              + Create Your Own
-            </button>
           </div>
           <div className="flex flex-wrap gap-4">
             {PopularPlans.map((plan, idx) => (
@@ -264,12 +264,6 @@ const WorkoutPlan: React.FC = () => {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-xl sm:text-2xl font-bold">Discover Plans</h2>
-            <button
-              onClick={() => navigate("/create-plan")}
-              className="text-red-500 text-sm hover:underline"
-            >
-              + Create Your Own
-            </button>
           </div>
           <div className="flex flex-wrap gap-4">
             {DiscoverPlans.map((plan, idx) => (
@@ -299,11 +293,16 @@ const WorkoutPlan: React.FC = () => {
           <div className="bg-white shadow p-4 rounded-xl">
             <div className="grid grid-cols-7 gap-3 text-sm">
               {weeklyPlan.map((wDay) => (
-                <div key={wDay.day} className="flex flex-col items-center gap-2">
+                <div
+                  key={wDay.day}
+                  className="flex flex-col items-center gap-2"
+                >
                   <h3 className="text-gray-600 font-bold">{wDay.day}</h3>
                   <div className="bg-white shadow p-2 rounded-lg w-full min-h-[60px] space-y-1">
                     {wDay.plans.length === 0 && (
-                      <p className="text-xs text-gray-400 text-center">No plans</p>
+                      <p className="text-xs text-gray-400 text-center">
+                        No plans
+                      </p>
                     )}
                     {wDay.plans.map((pName, idx) => (
                       <div
@@ -324,16 +323,18 @@ const WorkoutPlan: React.FC = () => {
       {/* MODAL: Add a plan to a day */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-xl shadow-md w-[300px] h-[220px] relative">
-            <button
-              onClick={() => {
-                setShowAddModal(false);
-                setSelectedPlan("");
-              }}
-              className="text-red-500 absolute top-2 right-2 text-sm hover:underline"
-            >
-              Close
-            </button>
+          <div className="bg-white p-4 rounded-xl shadow-md w-[300px] h-[440px] relative">
+            <div className="flex justify-end h-[30px] items-start">
+              <button
+                onClick={() => {
+                  setShowAddModal(false);
+                  setSelectedPlan("");
+                }}
+                className=" text-red-500  hover:underline hover:cursor-pointer "
+              >
+                Close
+              </button>
+            </div>
             <h2 className="text-xl font-bold text-center mb-2">
               Add "{selectedPlan}" to…
             </h2>
