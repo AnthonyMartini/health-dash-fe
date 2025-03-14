@@ -1,4 +1,4 @@
-import React, { ReactElement, useState } from "react";
+import React, { ReactElement, useState, useEffect } from "react";
 import { IoFootsteps } from "react-icons/io5";
 import { IoIosWater } from "react-icons/io";
 import { GiNightSleep } from "react-icons/gi";
@@ -8,50 +8,16 @@ import { RiDrinks2Fill } from "react-icons/ri";
 import { CiEdit } from "react-icons/ci";
 import SideBar from "../components/SideBar";
 import { useNavigate } from "react-router-dom";
+import { fetchDashboard } from "../utils";
 
+import { FoodItemProps, WorkoutPlanProps, DashboardDataProps } from "../utils";
+import {
+  fetchUserAttributes,
+  FetchUserAttributesOutput,
+} from "aws-amplify/auth";
 interface DashboardProps {
   Page?: string;
-  Goals?: object; //need shape?
 }
-
-const Consumption = [
-  {
-    type: "food",
-    name: "Eggs",
-    calories: 352,
-    protein: 30,
-    carbs: 20,
-    fat: 20,
-  },
-  {
-    type: "drink",
-    name: "Protein Shake",
-    calories: 352,
-    protein: 30,
-    carbs: 20,
-    fat: 20,
-  },
-];
-
-const Workouts = [
-  {
-    name: "Cardio Plan",
-    type: "cardio",
-    status: "Completed",
-    items: [{ name: "Treadmill", number: 30 }],
-  },
-  {
-    name: "God-Like Pull",
-    type: "strength",
-    status: "In-Progress",
-    items: [
-      { name: "Cable Pull-downs", number: 3 },
-      { name: "Cable Rows", number: 3 },
-      { name: "Bicep Curls", number: 3 },
-      { name: "Rear Delt Machine", number: 2 },
-    ],
-  },
-];
 
 //Define Card Array
 interface MetricCardProps {
@@ -127,18 +93,37 @@ const ContentCard: React.FC<ContentCardProps> = ({
   );
 };
 
-const Dashboard: React.FC<DashboardProps> = ({}) => {
+const Dashboard: React.FC<DashboardProps> = () => {
   const [logMetric, setLogMetric] = useState("");
   const [logConsumption, setLogConsumption] = useState(false);
   const [logPlan, setLogPlan] = useState(false);
   const navigate = useNavigate();
+  const [userDetails, setUserDetails] =
+    useState<FetchUserAttributesOutput | null>(null);
+  const [data, setData] = useState<DashboardDataProps | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const result = await fetchDashboard({
+        username: "001",
+        date: "2025-03-06",
+      });
+      setData(result);
+      const hold = await fetchUserAttributes();
+      setUserDetails(hold);
+    }
+    fetchData();
+  }, []);
+
+  const Consumption: FoodItemProps[] | undefined = data?.day_food;
+  const Workouts: WorkoutPlanProps[] | undefined = data?.day_workout_plan;
   return (
     <div className="h-full w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-100 overflow-y-scroll">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
-            Welcome Back, Peter
+            Welcome Back, {userDetails?.preferred_username}
           </h1>
           <h3 className=" text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
             Here is your health overview for the day:
@@ -147,7 +132,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
             <div className="flex flex-row gap-[20px] w-full  justify-center flex-wrap ">
               <MetricCard
                 metric="Calories Burnt"
-                value={858}
+                value={data?.day_calories ?? 0}
                 icon={<FaFire fill="#fc7703" />}
                 trend={13.1}
                 units=""
@@ -155,7 +140,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
               />
               <MetricCard
                 metric="Steps"
-                value={9912}
+                value={data?.day_steps ?? 0}
                 icon={<IoFootsteps />}
                 trend={-2.1}
                 units=""
@@ -163,7 +148,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
               />
               <MetricCard
                 metric="Sleep Duration"
-                value={7.6}
+                value={data?.day_sleep ?? 0}
                 icon={<GiNightSleep fill="#c603fc" />}
                 trend={1.8}
                 units="h"
@@ -171,7 +156,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
               />
               <MetricCard
                 metric="Water Intake"
-                value={2.1}
+                value={data?.day_water ?? 0}
                 icon={<IoIosWater fill="#5555FF" />}
                 trend={5.3}
                 units="L"
@@ -194,25 +179,28 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 action={() => setLogConsumption(true)}
                 actionText="+ Add"
                 content={
-                  <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2">
-                    {Consumption.map((item) => (
-                      <div className="w-full h-[50px] text-[11px] sm:text-[14px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg ">
-                        {item.type === "food" ? (
+                  <div className="w-full  flex-1 rounded-lg  gap-2 flex flex-col p-2">
+                    {Consumption?.map((item, index) => (
+                      <div
+                        key={`item-${index}`}
+                        className="w-full h-[50px] text-[11px] sm:text-[14px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg "
+                      >
+                        {item.title === "food" ? (
                           <FaBowlFood fill="#964B00" />
                         ) : (
                           <RiDrinks2Fill fill="blue" />
                         )}
                         <div className="flex-1 ">
-                          <span className="font-semibold">{item.name}</span>
+                          <span className="font-semibold">{item.title}</span>
                           <div className="flex font-bold gap-2 ">
                             <span className="text-[#FFA500]">
-                              {item.protein}g protein
+                              {item.macros.protein}g protein
                             </span>
                             <span className="text-[#007AFF]">
-                              {item.carbs}g carbs
+                              {item.macros.carb}g carbs
                             </span>
                             <span className="text-[#AF52DE]">
-                              {item.fat}g fat
+                              {item.macros.fat}g fat
                             </span>
                           </div>
                         </div>
@@ -230,20 +218,23 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 action={() => navigate("/workout-plan")}
                 content={
                   <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2 ">
-                    {Workouts.map((workout) => (
-                      <div className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg ">
+                    {Workouts?.map((workout, index) => (
+                      <div
+                        key={`item-${index}`}
+                        className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg "
+                      >
                         <div className="flex-1 flex text-[14px] sm:text-[16px]">
                           <span className="font-semibold flex-1">
-                            {workout.name}
+                            {workout.workout_title}
                           </span>
                           <span
                             className={`flex-1 ${
-                              workout.status === "Completed"
+                              workout.status //=== "Completed"
                                 ? "text-green-600"
                                 : "text-red-500"
                             }`}
                           >
-                            {workout.status}
+                            {workout.status ? "Completed" : "Not Completed"}
                           </span>
                           <span
                             className=" flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
@@ -253,12 +244,17 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                           </span>
                         </div>
                         <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px]">
-                          {workout.items.map((item) => (
-                            <div className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2">
-                              <span className="flex-1">{item.name}</span>
+                          {workout.exercises.map((item, index) => (
+                            <div
+                              key={`item-${index}`}
+                              className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2"
+                            >
+                              <span className="flex-1">{item.title}</span>
                               <span className="">
-                                {item.number}{" "}
-                                {workout.type === "cardio" ? "minutes" : "sets"}
+                                {item.set_count}{" "}
+                                {workout.workout_title === "cardio" //Wrong
+                                  ? "minutes"
+                                  : "sets"}
                               </span>
                             </div>
                           ))}
@@ -277,6 +273,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[200px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button
+                title="Close"
                 onClick={() => setLogMetric("")}
                 className=" text-red-500  hover:underline hover:cursor-pointer "
               >
@@ -291,7 +288,10 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter a number"
               />
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]">
+              <button
+                title="Submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
+              >
                 Submit
               </button>
             </div>
@@ -303,6 +303,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[270px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button
+                title="Close"
                 onClick={() => setLogConsumption(false)}
                 className=" text-red-500  hover:underline hover:cursor-pointer "
               >
@@ -363,7 +364,10 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 </div>
               </div>
 
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]">
+              <button
+                title="Submit"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
+              >
                 Submit
               </button>
             </div>
@@ -376,6 +380,7 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[200px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button
+                title="Close"
                 onClick={() => setLogPlan(false)}
                 className=" text-red-500  hover:underline hover:cursor-pointer "
               >
@@ -390,7 +395,10 @@ const Dashboard: React.FC<DashboardProps> = ({}) => {
                 className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter a number"
               />
-              <button className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]">
+              <button
+                title="Close"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
+              >
                 Submit
               </button>
             </div>
