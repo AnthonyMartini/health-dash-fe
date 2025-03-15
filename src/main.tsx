@@ -6,7 +6,6 @@ import {
   Authenticator,
   Button,
   Heading,
-  Image,
   Text,
   useAuthenticator,
   useTheme,
