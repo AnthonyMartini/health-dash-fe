@@ -14,9 +14,9 @@ const Profile: React.FC = () => {
   const [phoneToggle, setPhoneToggle] = useState(false);
 
   return (
-    <div className="flex flex-col bg-gray-100 h-screen w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-8 overflow-hidden">
+    <div className="flex flex-col bg-white h-screen w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-8 overflow-y-auto">
       {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto px-4 pb-24">
+      <div className="flex-1 px-4 pb-24">
         {/* Back Button */}
         <button
           title="Back"
@@ -33,7 +33,7 @@ const Profile: React.FC = () => {
           <img
             src="https://blenderartists.org/uploads/default/original/4X/4/d/4/4d438fc90b83b63a7e664cf28ba6aeb3bc0e519a.jpeg"
             alt="Profile"
-            className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover shadow-md"
+            className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
           />
 
           {/* User Name */}
@@ -57,7 +57,6 @@ const Profile: React.FC = () => {
               label="User ID"
               value="123456789"
               isBold
-              isMasked
             />
             <DataRow icon={<FaLock />} label="Password" value="" isPassword />
             <DataRow
@@ -147,13 +146,14 @@ const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({
   icon,
 }) => {
   return (
-    <div className="flex flex-col items-center justify-center bg-gray-200 rounded-lg w-40 h-24 p-4 shadow-md">
+    <div className="flex flex-col items-center justify-center bg-[rgba(239,240,240,0.3)] rounded-lg w-40 h-24 p-4">
       {icon}
       <span className="text-sm font-medium mt-2">{title}</span>
     </div>
   );
 };
 
+// 📌 Reusable DataRow Component
 // 📌 Reusable DataRow Component
 const DataRow: React.FC<{
   icon: React.ReactNode;
@@ -166,7 +166,6 @@ const DataRow: React.FC<{
   noBoldValue?: boolean;
   toggle?: boolean;
   onToggle?: () => void;
-  isMasked?: boolean;
 }> = ({
   icon,
   label,
@@ -178,10 +177,9 @@ const DataRow: React.FC<{
   noBoldValue = false,
   toggle,
   onToggle,
-  isMasked,
 }) => {
   return (
-    <div className="group flex flex-row justify-between items-center p-4 border-b border-gray-300 w-full">
+    <div className="group flex flex-row justify-between items-center p-4 bg-[rgba(239,240,240,0.3)] rounded-lg w-full">
       {/* Left Side: Icon & Text */}
       <div className="flex flex-row items-center gap-3">
         <span className="text-[#C69DE6] text-lg">{icon}</span>
@@ -221,14 +219,7 @@ const DataRow: React.FC<{
                 isBold ? "font-semibold" : ""
               }`}
             >
-              {isMasked ? (
-                <span className="group-hover:hidden">*********</span>
-              ) : (
-                value
-              )}
-              {isMasked && (
-                <span className="hidden group-hover:inline">{value}</span>
-              )}
+              {value}
             </span>
           ) : null
         ) : (
