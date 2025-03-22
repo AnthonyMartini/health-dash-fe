@@ -7,6 +7,7 @@ import { BiCalendar, BiMaleFemale } from "react-icons/bi";
 import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
 import { HiThumbUp } from "react-icons/hi"; // Icon for achievements
+import  DefaultAvatar  from "../assets/defaultAvatar.png"
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ const Profile: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center text-center md:text-left md:justify-start w-full gap-6 md:gap-10 border-b border-gray-200 pb-6">
           {/* Profile Image */}
           <img
-            src="https://blenderartists.org/uploads/default/original/4X/4/d/4/4d438fc90b83b63a7e664cf28ba6aeb3bc0e519a.jpeg"
+            src= {DefaultAvatar}
             alt="Profile"
             className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
           />
