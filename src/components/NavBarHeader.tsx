@@ -3,6 +3,7 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import { IoIosNotifications } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import APPIconSVG from "../assets/AppIcon.svg";
+import DefaultAvatar from "../assets/defaultAvatar.png"
 
 interface NavBarHeaderProps {
   logoText?: string;
@@ -18,7 +19,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   const { signOut } = useAuthenticator();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   return (
-    <div className="z-10 w-full h-[95px] p-6 bg-white flex items-center justify-between shadow-md sticky top-0">
+    <div className="z-10 w-full h-[95px] p-6 flex items-center justify-between shadow-[0_2px_6px_rgba(13,26,38,0.15)] sticky top-0">
       <div
         className="flex gap-2 font-bold text-xl sm:text-2xl text-[#e61313] cursor-pointer"
         onClick={() => navigate("/dashboard")}
@@ -35,14 +36,14 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
           onMouseLeave={() => setShowProfileMenu(false)}
         >
           <img
-            src="https://blenderartists.org/uploads/default/original/4X/4/d/4/4d438fc90b83b63a7e664cf28ba6aeb3bc0e519a.jpeg"
+            src={DefaultAvatar}
             alt="Profile"
             className="w-11 h-11 cursor-pointer rounded-full hover:opacity-90"
             onClick={onProfileClick}
           />
 
           {showProfileMenu && (
-            <div className="absolute right-0 w-30 bg-white shadow-lg rounded-lg">
+            <div className="absolute right-0 w-30 bg-white shadow-[0_2px_6px_rgba(13,26,38,0.15)] rounded-lg">
               <p
                 className="text-gray-700 cursor-pointer hover:bg-slate-200 px-3 h-[30px] flex items-center"
                 onClick={() => navigate("/profile")}

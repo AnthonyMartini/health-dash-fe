@@ -37,7 +37,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   setMetric,
 }) => {
   return (
-    <div className="w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] shadow-lg rounded-xl bg-white p-3 flex flex-col">
+    <div className="w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl bg-white p-3 flex flex-col">
       <div className="w-full h-[30px] text-lg flex text-[#5C6670] ">
         <span className={`flex-1 text-[16px] sm:text-[18px]`}>{metric}</span>
         <div className="hidden sm:block">{icon}</div>
@@ -74,7 +74,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
   action,
 }) => {
   return (
-    <div className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-lg rounded-xl p-2 flex flex-col">
+    <div className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col">
       <div className="flex items-center justify-between">
         <span className="text-[#5C6670] text-[16px] sm:text-lg font-semibold">
           {title}
@@ -120,7 +120,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
   return (
     <div className="h-full w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
-      <div className="h-full flex-1 p-4 overflow-clip bg-gray-100 overflow-y-scroll">
+      <div className="h-full flex-1 p-4 overflow-clip bg-gray-50/90 overflow-y-scroll">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
             Welcome Back, {userDetails?.preferred_username}
