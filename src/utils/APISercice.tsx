@@ -6,24 +6,23 @@ const BASE_URL = 'https://34pdw0bjyi.execute-api.us-east-1.amazonaws.com/default
 export const API_METHODS = {
   GET: 'GET',
   POST: 'POST',
-  PUT: 'PUT',
   DELETE: 'DELETE',
 } as const;
 
 export type ApiMethod = keyof typeof API_METHODS;
 
 export const API_ROUTES = {
-  GET_USER: { path: '/getUser', method: API_METHODS.GET },
-  UPDATE_USER: { path: '/updateUser', method: API_METHODS.PUT },
-  DELETE_USER: { path: '/deleteUser', method: API_METHODS.DELETE },
-  GET_WORKOUT_PLANS: { path: '/getWorkoutPlans', method: API_METHODS.GET },
-  GET_WORKOUT_PLAN_BY_ID: { path: '/getWorkoutPlanById', method: API_METHODS.GET },
-  CREATE_WORKOUT_PLAN: { path: '/createWorkoutPlan', method: API_METHODS.POST },
-  UPDATE_WORKOUT_PLAN: { path: '/updateWorkoutPlan', method: API_METHODS.PUT },
-  DELETE_WORKOUT_PLAN: { path: '/deleteWorkoutPlan', method: API_METHODS.DELETE },
-  GET_WEEKLY_PLAN: { path: '/getWeeklyPlan', method: API_METHODS.GET },
-  STORE_WEEKLY_PLAN: { path: '/storeWeeklyPlan', method: API_METHODS.POST },
-  LIST_TABLE: { path: '/health-data/tables', method: API_METHODS.GET }
+  GET_HEALTH_DATA: { path: '/health-data', method: API_METHODS.GET},
+  UPDATE_HEALTH_DATA: {path: 'health-data', method: API_METHODS.POST},
+  GET_USER: { path: '/user-profile', method: API_METHODS.GET },
+  UPDATE_USER: { path: '/user-profile', method: API_METHODS.POST },
+  DELETE_USER: { path: '/user-profile', method: API_METHODS.DELETE },
+  UPDATE_WORKOUT_CARD: { path: '/workoutplan-card', method: API_METHODS.POST },
+  GET_WEEKLY_PLAN: { path: '/workoutplan-weekly', method: API_METHODS.GET },
+  STORE_WEEKLY_PLAN: { path: '/workoutplan-weekly', method: API_METHODS.POST },
+  LIST_TABLE: { path: '/health-data/tables', method: API_METHODS.GET },
+  GET_GOALS: { path: '/goals', method: API_METHODS.GET},
+  UPDATE_GOALS: { path: 'goals', method: API_METHODS.POST}
 } as const;
 
 export type ApiRoute = keyof typeof API_ROUTES;
