@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { CgGym } from "react-icons/cg";
 import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
+import { apiRequest } from "../utils/APISercice";
 
 // Mock Data
 const MOCK_DATA = {
@@ -14,12 +15,36 @@ const MOCK_DATA = {
   ],
 };
 
+const testHealthDataTables = async () => {
+  try {
+    const data = await apiRequest("LIST_TABLE");
+    console.log("Health Data Tables:", data);
+  } catch (error) {
+    console.error("Error fetching health data tables:", error);
+  }
+};
+
 interface SideBarProps {
   SelectedPage?: string;
 }
 
 const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
   const navigate = useNavigate();
+
+  // ✅ Manage goal state to reflect updates
+  const [goals, setGoals] = useState(MOCK_DATA.goal);
+
+  // ✅ Handle checkbox click event
+  const handleToggleGoal = (index: number) => {
+    const updatedGoals = [...goals];
+    updatedGoals[index].status = !updatedGoals[index].status;
+    setGoals(updatedGoals);
+
+    console.log(`Goal "${updatedGoals[index].title}" toggled to:`, updatedGoals[index].status);
+
+    // ✅ Test the API call after toggling
+    testHealthDataTables();
+  };
 
   const buttons = [
     {
@@ -69,8 +94,8 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
           <span className="text-[#FF3B30] text-[16px] font-normal mb-2">
             In Progress:
           </span>
-          {MOCK_DATA.goal
-            .filter((goal) => !goal.status) // Filter incomplete goals
+          {goals
+            .filter((goal) => !goal.status)
             .map((goal, index) => (
               <div
                 key={index}
@@ -79,7 +104,11 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
                 <span className="text-[12px] text-black leading-[16px] w-[156px]">
                   {goal.title}
                 </span>
-                <FaRegSquare className="text-[#FF3B30] w-6 h-6 cursor-pointer" />
+                {/* ✅ Add click event to toggle the state */}
+                <FaRegSquare
+                  className="text-[#FF3B30] w-6 h-6 cursor-pointer"
+                  onClick={() => handleToggleGoal(index)}
+                />
               </div>
             ))}
         </div>
@@ -89,7 +118,9 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
           <span className="text-[#34C759] text-[16px] font-normal mb-2">
             Completed:
           </span>
-          {MOCK_DATA.goal.map((goal, index) => (
+          {goals
+            .filter((goal) => goal.status)
+            .map((goal, index) => (
               <div
                 key={index}
                 className="flex justify-between items-center mt-2"
@@ -97,7 +128,11 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
                 <span className="text-[12px] text-black leading-[16px] w-[156px]">
                   {goal.title}
                 </span>
-                <FaCheckSquare className="text-[#34C759] w-6 h-6 cursor-pointer" />
+                {/* ✅ Add click event to toggle the state */}
+                <FaCheckSquare
+                  className="text-[#34C759] w-6 h-6 cursor-pointer"
+                  onClick={() => handleToggleGoal(index)}
+                />
               </div>
             ))}
         </div>
