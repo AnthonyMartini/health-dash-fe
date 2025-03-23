@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { CgGym } from "react-icons/cg";
 import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
-import { apiRequest } from "../utils/APISercice";
+import { apiRequest } from "../utils/APIService";
 
 // Mock Data
 const MOCK_DATA = {
