@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaRegIdCard, FaLock } from "react-icons/fa";
+import { FaArrowLeft, FaRegIdCard, FaLock, FaPencilAlt, FaCheck, FaTimes } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { AiFillPhone } from "react-icons/ai";
 import { BiCalendar, BiMaleFemale } from "react-icons/bi";
@@ -11,12 +11,32 @@ import DefaultAvatar from "../assets/defaultAvatar.png";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
+
+  // State for toggles
   const [emailToggle, setEmailToggle] = useState(true);
   const [phoneToggle, setPhoneToggle] = useState(false);
+
+  // State for editing
+  const [isEditing, setIsEditing] = useState(false);
+  const [email, setEmail] = useState("petergriffin@mail.com");
+  const [phone, setPhone] = useState("+1 (111) 111-1111");
+  const [birthDate, setBirthDate] = useState("Feb 11, 2025");
+  const [gender, setGender] = useState("Male");
+  const [height, setHeight] = useState("190.5 cm");
+  const [weight, setWeight] = useState("122 kg");
 
   // State for popups
   const [showResetPopup, setShowResetPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+
+  const handleSave = () => {
+    setIsEditing(false);
+    console.log("Saved values:", { email, phone, birthDate, gender, height, weight });
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+  };
 
   return (
     <div className="flex flex-col bg-white h-screen w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-8 overflow-y-auto">
@@ -51,9 +71,32 @@ const Profile: React.FC = () => {
 
         {/* User Information Section */}
         <div className="w-full mt-6">
-          <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
-            User Information
-          </h2>
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+              User Information
+            </h2>
+
+            {/* Edit Button */}
+            {!isEditing ? (
+              <FaPencilAlt
+                onClick={() => setIsEditing(true)}
+                className="text-gray-500 hover:text-gray-700 cursor-pointer"
+              />
+            ) : (
+              <div className="flex gap-2">
+                {/* Save Button */}
+                <FaCheck
+                  onClick={handleSave}
+                  className="text-green-500 hover:text-green-700 cursor-pointer"
+                />
+                {/* Cancel Button */}
+                <FaTimes
+                  onClick={handleCancel}
+                  className="text-red-500 hover:text-red-700 cursor-pointer"
+                />
+              </div>
+            )}
+          </div>
 
           {/* User Data Rows */}
           <div className="flex flex-col gap-4 w-full">
@@ -68,7 +111,9 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<MdEmail />}
               label="Email"
-              value="petergriffin@mail.com"
+              value={email}
+              onChange={setEmail}
+              editable={isEditing}
               stacked
               isBold
               toggle={emailToggle}
@@ -77,18 +122,46 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<AiFillPhone />}
               label="Phone"
-              value="+1 (111) 111-1111"
+              value={phone}
+              onChange={setPhone}
+              editable={isEditing}
               stacked
               isBold
               toggle={phoneToggle}
               onToggle={() => setPhoneToggle(!phoneToggle)}
             />
-            <DataRow icon={<BiCalendar />} label="Birth Date" value="Feb 11, 2025" isBold />
-            <DataRow icon={<BiMaleFemale />} label="Gender" value="Male" isBold />
-            <DataRow icon={<GiBodyHeight />} label="Height" value="190.5 cm" isBold />
-            <DataRow icon={<GiWeight />} label="Weight" value="122 kg" isBold />
-            <DataRow icon={<GiWeight />} label="BMI" value="33.6" isBold />
-
+            <DataRow
+              icon={<BiCalendar />}
+              label="Birth Date"
+              value={birthDate}
+              onChange={setBirthDate}
+              editable={isEditing}
+              isBold
+            />
+            <DataRow
+              icon={<BiMaleFemale />}
+              label="Gender"
+              value={gender}
+              onChange={setGender}
+              editable={isEditing}
+              isBold
+            />
+            <DataRow
+              icon={<GiBodyHeight />}
+              label="Height"
+              value={height}
+              onChange={setHeight}
+              editable={isEditing}
+              isBold
+            />
+            <DataRow
+              icon={<GiWeight />}
+              label="Weight"
+              value={weight}
+              onChange={setWeight}
+              editable={isEditing}
+              isBold
+            />
             {/* Delete Account Row */}
             <DataRow
               icon={<IoIosWarning />}
@@ -102,10 +175,10 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Achievements Section */}
+      {/* Achievements Section */}
         <AchievementsSection />
       </div>
-
+      
       {/* POPUPS */}
       {showResetPopup && (
         <Popup
@@ -132,6 +205,7 @@ const Profile: React.FC = () => {
   );
 };
 
+
 // 🏆 Achievements Section
 const AchievementsSection: React.FC = () => {
   return (
@@ -156,14 +230,14 @@ const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({ t
   );
 };
 
-// 📌 Popup Component
+// ✅ Popup Component
 const Popup: React.FC<{
   message: string;
   onClose: () => void;
   onConfirm: () => void;
 }> = ({ message, onClose, onConfirm }) => (
-  <div className="fixed inset-0 flex items-center justify-center bg-black/50">
-    <div className="bg-white p-4 rounded-2xl shadow-lg w-[300px] text-center relative">
+  <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
+    <div className="bg-white p-4 rounded-2xl shadow-lg w-[300px] text-center">
       <p className="text-lg font-semibold mb-4">{message}</p>
       <div className="flex justify-center gap-4">
         <button
@@ -183,7 +257,7 @@ const Popup: React.FC<{
   </div>
 );
 
-// 📌 Reusable DataRow Component
+// 📌 Updated Reusable DataRow Component
 const DataRow: React.FC<{
   icon: React.ReactNode;
   label: string;
@@ -197,6 +271,8 @@ const DataRow: React.FC<{
   onToggle?: () => void;
   onReset?: () => void;
   onDelete?: () => void;
+  editable?: boolean;
+  onChange?: (val: string) => void;
 }> = ({
   icon,
   label,
@@ -208,6 +284,8 @@ const DataRow: React.FC<{
   noBoldValue = false,
   toggle,
   onToggle,
+  editable = false,
+  onChange,
 }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -243,7 +321,16 @@ const DataRow: React.FC<{
             >
               {label}
             </span>
-            {(isDelete || stacked) && (
+
+            {/* Editable Input */}
+            {editable ? (
+              <input
+                type="text"
+                value={value}
+                onChange={(e) => onChange?.(e.target.value)}
+                className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+              />
+            ) : (isDelete || stacked) ? (
               <p
                 className={`text-gray-800 text-base ${
                   isBold && !noBoldValue ? "font-semibold" : ""
@@ -251,12 +338,13 @@ const DataRow: React.FC<{
               >
                 {value}
               </p>
-            )}
+            ) : null}
           </div>
         </div>
 
         {/* Right Side Content */}
         <div className="flex flex-row items-center gap-3">
+          {/* Reset Password */}
           {!isDelete ? (
             isPassword ? (
               <button
@@ -276,6 +364,7 @@ const DataRow: React.FC<{
               </span>
             ) : null
           ) : (
+            /* Delete Button */
             <button
               title="Delete"
               className="px-4 py-2 text-[#FF3B30] text-base font-semibold border border-[#FF3B30] rounded-lg hover:bg-[#FF3B30] hover:text-white transition"
@@ -285,7 +374,7 @@ const DataRow: React.FC<{
             </button>
           )}
 
-          {/* Toggle Button (for Email & Phone) */}
+          {/* Toggle Button */}
           {onToggle && (
             <button
               title="Toggle"
@@ -329,5 +418,6 @@ const DataRow: React.FC<{
     </>
   );
 };
+
 
 export default Profile;
