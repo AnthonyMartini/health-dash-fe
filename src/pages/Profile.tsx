@@ -64,21 +64,27 @@ const Profile: React.FC = () => {
 
   // ✅ Phone validation and formatting function
   const validatePhone = (value: string) => {
-    // Remove all non-numeric characters
-    const cleanedValue = value.replace(/\D/g, "");
+    // ✅ Allow formats like: 1234567890, 123-456-7890, 123.456.7890, +1 (123) 456-7890
+    const phonePattern = /^\+?1?\s?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
 
-    // ✅ Check for exactly 10 digits
-    if (cleanedValue.length !== 10) {
+    // ✅ Remove non-numeric characters except the leading '+'
+    const cleanedValue = value.replace(/[^\d+]/g, "");
+
+    if (cleanedValue.length === 10) {
+      // ✅ Format into +1 (XXX) XXX-XXXX if it's exactly 10 digits
+      const formattedPhone = `+1 (${cleanedValue.slice(0, 3)}) ${cleanedValue.slice(3, 6)}-${cleanedValue.slice(6)}`;
+      setPhone(formattedPhone);
+      setPhoneError(null);
+      return true;
+    } else if (phonePattern.test(value)) {
+      // ✅ Allow already formatted phone numbers like +1 (123) 456-7890
+      setPhone(value);
+      setPhoneError(null);
+      return true;
+    } else {
       setPhoneError("Invalid phone number format.");
       return false;
     }
-
-    // ✅ Format into +1 (XXX) XXX-XXXX
-    const formattedPhone = `+1 (${cleanedValue.slice(0, 3)}) ${cleanedValue.slice(3, 6)}-${cleanedValue.slice(6)}`;
-
-    setPhone(formattedPhone); // ✅ Update the phone state with the formatted number
-    setPhoneError(null); // ✅ Clear any previous errors
-    return true;
   };
 
   // ✅ Height validation function
