@@ -22,7 +22,7 @@ const Profile: React.FC = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState("petergriffin@mail.com");
   const [phone, setPhone] = useState("+1 (111) 111-1111");
-  const [birthDate, setBirthDate] = useState("Feb 11, 2025");
+  const [birthDate, setBirthDate] = useState("2025-02-11");
   const [gender, setGender] = useState("Male");
   const [height, setHeight] = useState("190.5");
   const [weight, setWeight] = useState("122");
@@ -154,6 +154,7 @@ const Profile: React.FC = () => {
               value={birthDate}
               onChange={setBirthDate}
               editable={isEditing}
+              type="date" // 🔥 Date type added here
               isBold
             />
             <DataRow
@@ -163,6 +164,7 @@ const Profile: React.FC = () => {
               onChange={setGender}
               editable={isEditing}
               isBold
+              options={["Male", "Female"]}
             />
             <DataRow
               icon={<GiBodyHeight />}
@@ -289,10 +291,12 @@ const Popup: React.FC<{
 );
 
 // 📌 Updated Reusable DataRow Component
+// 📌 Updated Reusable DataRow Component
 const DataRow: React.FC<{
   icon: React.ReactNode;
   label: string;
   value: string;
+  type?: 'text' | 'number' | 'date'; // ✅ Added support for 'date'
   isPassword?: boolean;
   isDelete?: boolean;
   stacked?: boolean;
@@ -305,10 +309,12 @@ const DataRow: React.FC<{
   editable?: boolean;
   onChange?: (val: string) => void;
   unit?: string;
+  options?: string[];
 }> = ({
   icon,
   label,
   value,
+  type = 'text',
   isPassword = false,
   isDelete = false,
   stacked = false,
@@ -319,6 +325,7 @@ const DataRow: React.FC<{
   editable = false,
   onChange,
   unit,
+  options,
 }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
@@ -359,12 +366,34 @@ const DataRow: React.FC<{
             {/* ✅ Show value underneath the label for stacked types (Email and Phone) */}
             {!isDelete && stacked && (
               editable ? (
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => onChange?.(e.target.value)}
-                  className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                />
+                options ? (
+                  // ✅ Dropdown for options (like Gender)
+                  <select
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  >
+                    {options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : type === "date" ? (
+                  <input
+                    type="date"
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                ) : (
+                  <input
+                    type={type}
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                )
               ) : (
                 <span
                   className={`text-gray-800 text-base ${
@@ -391,24 +420,34 @@ const DataRow: React.FC<{
               </button>
             ) : !stacked ? (
               editable ? (
-                <>
-                  <input
-                    type="text"
+                options ? (
+                  // ✅ Dropdown on right side (if not underneath the label)
+                  <select
                     value={value}
-                    inputMode="decimal" // ✅ Allows numeric input on mobile keyboards
-                    onInput={(e) => {
-                      const target = e.target as HTMLInputElement;
-                      // ✅ Allow only numbers and one decimal point
-                      if (/^\d*\.?\d{0,1}$/.test(target.value) || target.value === "") {
-                        onChange?.(target.value);
-                      } else {
-                        e.preventDefault();
-                      }
-                    }}
-                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500 w-20"
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  >
+                    {options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : type === "date" ? ( 
+                  <input
+                    type="date"
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
                   />
-                  {unit && <span className="text-gray-800 text-base ml-1">{unit}</span>}
-                </>
+                ) : (
+                  <input
+                    type={type}
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                )
               ) : (
                 <span
                   className={`text-gray-800 text-base ${
@@ -416,7 +455,7 @@ const DataRow: React.FC<{
                   }`}
                 >
                   {value}
-                  {unit && <span className="ml-1">{unit}</span>} {/* ✅ Display unit next to value */}
+                  {unit && <span className="ml-1">{unit}</span>}
                 </span>
               )
             ) : null
@@ -474,5 +513,6 @@ const DataRow: React.FC<{
     </>
   );
 };
+
 
 export default Profile;
