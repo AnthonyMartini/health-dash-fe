@@ -1,4 +1,4 @@
-import React, { useState} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaRegIdCard, FaLock, FaPencilAlt, FaCheck, FaTimes } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
@@ -8,6 +8,7 @@ import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
 import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
+import { apiRequest, API_ROUTES } from "../utils/APIService";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const Profile: React.FC = () => {
 
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState("petergriffin@mail.com");
   const [phone, setPhone] = useState("+1 (111) 111-1111");
   const [birthDate, setBirthDate] = useState("Feb 11, 2025");
@@ -28,6 +30,22 @@ const Profile: React.FC = () => {
   // State for popups
   const [showResetPopup, setShowResetPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
+
+  // ✅ Fetch user data from the API
+  const fetchUserData = async () => {
+    try {
+      const data = await apiRequest<{ username: string }>('GET_USER');
+      console.log("Fetched user data:", data);
+      setUsername(data.username); // Set the username
+    } catch (error) {
+      console.error("Failed to fetch user data:", error);
+    }
+  };
+
+  // 📌 Call the fetchUserData when the component loads
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const handleSave = () => {
     setIsEditing(false);
@@ -64,7 +82,7 @@ const Profile: React.FC = () => {
           {/* User Name */}
           <div className="flex flex-col items-center md:items-start">
             <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
-              Peter Griffin
+              {username || "Loading..."}
             </h2>
           </div>
         </div>
