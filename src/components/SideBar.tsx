@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { CgGym } from "react-icons/cg";
 import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
-import { apiRequest } from "../utils/APIService";
+import { apiRequest, ApiOptions } from "../utils/APIService";
+import { fetchUserAttributes } from "@aws-amplify/auth";
 
 // Mock Data
 const MOCK_DATA = {
@@ -18,7 +19,7 @@ const MOCK_DATA = {
 const testHealthDataTables = async () => {
   try {
     const data = await apiRequest("LIST_TABLE");
-    console.log("Health Data Tables:", data);
+    console.log("Health Data Tables:", data.json());
   } catch (error) {
     console.error("Error fetching health data tables:", error);
   }
@@ -40,12 +41,32 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
     updatedGoals[index].status = !updatedGoals[index].status;
     setGoals(updatedGoals);
 
-    console.log(`Goal "${updatedGoals[index].title}" toggled to:`, updatedGoals[index].status);
+    console.log(
+      `Goal "${updatedGoals[index].title}" toggled to:`,
+      updatedGoals[index].status
+    );
 
     // ✅ Test the API call after toggling
     testHealthDataTables();
   };
 
+  /*
+  useEffect(() => {
+    //WIP
+    async function fetchData() {
+      const hold = await fetchUserAttributes();
+      try {
+        const result = await apiRequest("GET_GOALS", {
+          queryParams: { username: hold?.sub, date: "2025-03-06" },
+        });
+        setGoals(result.data);
+      } catch {
+        setGoals(MOCK_DATA.goal);
+      }
+    }
+    fetchData();
+  }, []);
+*/
   const buttons = [
     {
       page: "Dashboard",
@@ -83,7 +104,9 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
       <div className="flex flex-col items-center w-full mt-6">
         {/* Header */}
         <div className="flex justify-between items-center w-[230px] mb-4">
-          <span className="text-[#DF1111] font-semibold text-[16px]">Goals</span>
+          <span className="text-[#DF1111] font-semibold text-[16px]">
+            Goals
+          </span>
           <button className="text-[#FF3B30] text-[16px] hover:underline">
             + Add Goal
           </button>

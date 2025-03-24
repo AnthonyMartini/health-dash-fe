@@ -8,7 +8,8 @@ import { RiDrinks2Fill } from "react-icons/ri";
 import { CiEdit } from "react-icons/ci";
 import SideBar from "../components/SideBar";
 import { useNavigate } from "react-router-dom";
-import { fetchDashboard } from "../utils";
+
+import { apiRequest } from "../utils/APIService";
 
 import { FoodItemProps, WorkoutPlanProps, DashboardDataProps } from "../utils";
 import {
@@ -18,6 +19,26 @@ import {
 interface DashboardProps {
   Page?: string;
 }
+
+//removes unwanted properties from data to send to api
+const filterData = (data: any): DashboardDataProps => {
+  return {
+    username: data.username,
+    day_calories: data.day_calories ?? 0,
+    day_steps: data.day_steps ?? 0,
+    day_food: Array.isArray(data.day_food) ? data.day_food : [],
+    day_workout_plan: Array.isArray(data.day_workout_plan)
+      ? data.day_workout_plan
+      : [],
+    day_macros: {
+      protein: data.day_macros?.protein ?? 0,
+      carb: data.day_macros?.carb ?? 0,
+      fat: data.day_macros?.fat ?? 0,
+    },
+    day_water: data.day_water ?? 0,
+    day_sleep: data.day_sleep ?? 0,
+  };
+};
 
 //Define Card Array
 interface MetricCardProps {
@@ -95,25 +116,47 @@ const ContentCard: React.FC<ContentCardProps> = ({
 
 const Dashboard: React.FC<DashboardProps> = () => {
   const [logMetric, setLogMetric] = useState("");
+  const [logMetricValue, setLogMetricValue] = useState(0.0);
   const [logConsumption, setLogConsumption] = useState(false);
+  const [logConsumptionValue, setLogConsumptionValue] = useState({
+    title: "",
+    macros: { protein: 0.0, carb: 0.0, fat: 0.0 },
+    calories: 0.0,
+  });
   const [logPlan, setLogPlan] = useState(false);
   const navigate = useNavigate();
   const [userDetails, setUserDetails] =
     useState<FetchUserAttributesOutput | null>(null);
-  const [data, setData] = useState<DashboardDataProps | null>(null);
+  const [data, setData] = useState<DashboardDataProps>(filterData({}));
 
+  //On screen load, grab user details and health data
   useEffect(() => {
     async function fetchData() {
-      const result = await fetchDashboard({
-        username: "001",
-        date: "2025-03-06",
-      });
-      setData(result);
       const hold = await fetchUserAttributes();
       setUserDetails(hold);
+      try {
+        const result = await apiRequest("GET_HEALTH_DATA", {
+          queryParams: { username: hold.sub, date: "2025-03-06" },
+        });
+        setData(filterData(result.data));
+      } catch {
+        //blank data
+        setData(filterData({}));
+      }
     }
+
     fetchData();
   }, []);
+
+  //Update DB with new data
+  async function updateDB(update: DashboardDataProps) {
+    await apiRequest("UPDATE_HEALTH_DATA", {
+      queryParams: {
+        date: "2025-03-06",
+      },
+      body: update,
+    });
+  }
 
   const Consumption: FoodItemProps[] | undefined = data?.day_food;
   const Workouts: WorkoutPlanProps[] | undefined = data?.day_workout_plan;
@@ -123,7 +166,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-50/90 overflow-y-scroll">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
-            Welcome Back, {userDetails?.preferred_username}
+            Welcome Back, {userDetails?.sub}
           </h1>
           <h3 className=" text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
             Here is your health overview for the day:
@@ -287,10 +330,37 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 type="number"
                 className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter a number"
+                onChange={(e) => setLogMetricValue(Number(e.target.value))}
               />
               <button
                 title="Submit"
                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
+                onClick={() => {
+                  //update data with new values and call API
+                  setData((prev) => {
+                    const updatedData: DashboardDataProps = {
+                      ...prev,
+                      username: userDetails?.sub ? userDetails.sub : "",
+                      day_calories:
+                        logMetric === "Calories"
+                          ? logMetricValue
+                          : prev.day_calories,
+                      day_sleep:
+                        logMetric === "Sleep" ? logMetricValue : prev.day_sleep,
+                      day_steps:
+                        logMetric === "Steps" ? logMetricValue : prev.day_steps,
+                      day_water:
+                        logMetric === "Water" ? logMetricValue : prev.day_water,
+                    };
+
+                    // Call API immediately after updating state
+                    updateDB(updatedData);
+                    setLogMetricValue(0);
+                    setLogMetric("");
+
+                    return updatedData; // Ensure the new state is returned
+                  });
+                }}
               >
                 Submit
               </button>
@@ -319,6 +389,15 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   inputMode="numeric"
                   pattern="[0-9]*"
                   className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                  onChange={(e) => {
+                    setLogConsumptionValue((prev) => {
+                      const updatedData = {
+                        ...prev,
+                        title: e.target.value,
+                      };
+                      return updatedData;
+                    });
+                  }}
                 />
               </div>
 
@@ -330,6 +409,19 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    onChange={(e) => {
+                      setLogConsumptionValue((prev) => {
+                        const updatedData = {
+                          ...prev,
+                          macros: {
+                            protein: Number(e.target.value),
+                            carb: prev.macros.carb,
+                            fat: prev.macros.fat,
+                          },
+                        };
+                        return updatedData;
+                      });
+                    }}
                   />
                 </div>
 
@@ -340,6 +432,19 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    onChange={(e) => {
+                      setLogConsumptionValue((prev) => {
+                        const updatedData = {
+                          ...prev,
+                          macros: {
+                            carb: Number(e.target.value),
+                            protein: prev.macros.carb,
+                            fat: prev.macros.fat,
+                          },
+                        };
+                        return updatedData;
+                      });
+                    }}
                   />
                 </div>
 
@@ -350,6 +455,19 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    onChange={(e) => {
+                      setLogConsumptionValue((prev) => {
+                        const updatedData = {
+                          ...prev,
+                          macros: {
+                            fat: Number(e.target.value),
+                            carb: prev.macros.carb,
+                            protein: prev.macros.fat,
+                          },
+                        };
+                        return updatedData;
+                      });
+                    }}
                   />
                 </div>
 
@@ -360,12 +478,41 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    onChange={(e) => {
+                      setLogConsumptionValue((prev) => {
+                        const updatedData = {
+                          ...prev,
+                          calories: Number(e.target.value),
+                        };
+                        return updatedData;
+                      });
+                    }}
                   />
                 </div>
               </div>
 
               <button
                 title="Submit"
+                onClick={() => {
+                  setData((prev) => {
+                    const updatedData: DashboardDataProps = {
+                      ...prev,
+                      username: userDetails?.sub ? userDetails.sub : "",
+                      day_food: [...prev.day_food, logConsumptionValue],
+                    };
+
+                    // Call API immediately after updating state
+                    updateDB(updatedData);
+                    setLogConsumption(false);
+                    setLogConsumptionValue({
+                      title: "",
+                      macros: { protein: 0.0, carb: 0.0, fat: 0.0 },
+                      calories: 0.0,
+                    });
+
+                    return updatedData; // Ensure the new state is returned
+                  });
+                }}
                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
               >
                 Submit

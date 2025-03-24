@@ -192,9 +192,7 @@ const components = {
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <Authenticator signUpAttributes={["picture"]} components={components}>
-      <App />
-    </Authenticator>
-  </React.StrictMode>
+  <Authenticator signUpAttributes={["picture"]} components={components}>
+    <App />
+  </Authenticator>
 );
