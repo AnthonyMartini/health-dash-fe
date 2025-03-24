@@ -8,7 +8,7 @@ import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
 import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
-import { apiRequest, API_ROUTES } from "../utils/APIService";
+import { apiRequest, API_ROUTES, ApiRoute } from "../utils/APIService";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -24,8 +24,8 @@ const Profile: React.FC = () => {
   const [phone, setPhone] = useState("+1 (111) 111-1111");
   const [birthDate, setBirthDate] = useState("Feb 11, 2025");
   const [gender, setGender] = useState("Male");
-  const [height, setHeight] = useState("190.5 cm");
-  const [weight, setWeight] = useState("122 kg");
+  const [height, setHeight] = useState("190.5");
+  const [weight, setWeight] = useState("122");
 
   // State for popups
   const [showResetPopup, setShowResetPopup] = useState(false);
@@ -34,7 +34,7 @@ const Profile: React.FC = () => {
   // ✅ Fetch user data from the API
   const fetchUserData = async () => {
     try {
-      const data = await apiRequest<{ username: string }>('GET_USER');
+      const data = await apiRequest<{ username: string }>('GET_USER' as ApiRoute);
       console.log("Fetched user data:", data);
       setUsername(data.username); // Set the username
     } catch (error) {
@@ -168,17 +168,29 @@ const Profile: React.FC = () => {
               icon={<GiBodyHeight />}
               label="Height"
               value={height}
-              onChange={setHeight}
+              onChange={(value) => {
+                // ✅ Allow only numbers and one decimal point
+                if (/^\d*\.?\d{0,1}$/.test(value) || value === "") {
+                  setHeight(value);
+                }
+              }}
               editable={isEditing}
               isBold
+              unit="cm"
             />
             <DataRow
               icon={<GiWeight />}
               label="Weight"
               value={weight}
-              onChange={setWeight}
+              onChange={(value) => {
+                // ✅ Allow only numbers and one decimal point
+                if (/^\d*\.?\d{0,1}$/.test(value) || value === "") {
+                  setWeight(value);
+                }
+              }}
               editable={isEditing}
               isBold
+              unit="kg"
             />
             <DataRow icon={<GiWeight />} label="BMI" value="33.6" isBold />
             {/* Delete Account Row */}
@@ -292,6 +304,7 @@ const DataRow: React.FC<{
   onDelete?: () => void;
   editable?: boolean;
   onChange?: (val: string) => void;
+  unit?: string;
 }> = ({
   icon,
   label,
@@ -305,17 +318,18 @@ const DataRow: React.FC<{
   onToggle,
   editable = false,
   onChange,
+  unit,
 }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
 
-  // Handler for Reset Password
+  // ✅ Handler for Reset Password
   const handleResetPassword = () => {
     setPopupMessage("Are you sure you want to reset your password?");
     setShowPopup(true);
   };
 
-  // Handler for Delete Account
+  // ✅ Handler for Delete Account
   const handleDeleteAccount = () => {
     setPopupMessage("Are you sure you want to delete your account?");
     setShowPopup(true);
@@ -342,7 +356,7 @@ const DataRow: React.FC<{
               {label}
             </span>
 
-            {/* Show value underneath the label for stacked types (Email and Phone) */}
+            {/* ✅ Show value underneath the label for stacked types (Email and Phone) */}
             {!isDelete && stacked && (
               editable ? (
                 <input
@@ -364,9 +378,8 @@ const DataRow: React.FC<{
           </div>
         </div>
 
-        {/* Right Side: Value or Input */}
-        <div className="flex flex-row items-center gap-3">
-          {/* Reset Password Button */}
+        {/* ✅ Right Side: Value or Input */}
+        <div className="flex flex-row items-center gap-1">
           {!isDelete ? (
             isPassword ? (
               <button
@@ -378,12 +391,24 @@ const DataRow: React.FC<{
               </button>
             ) : !stacked ? (
               editable ? (
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(e) => onChange?.(e.target.value)}
-                  className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                />
+                <>
+                  <input
+                    type="text"
+                    value={value}
+                    inputMode="decimal" // ✅ Allows numeric input on mobile keyboards
+                    onInput={(e) => {
+                      const target = e.target as HTMLInputElement;
+                      // ✅ Allow only numbers and one decimal point
+                      if (/^\d*\.?\d{0,1}$/.test(target.value) || target.value === "") {
+                        onChange?.(target.value);
+                      } else {
+                        e.preventDefault();
+                      }
+                    }}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500 w-20"
+                  />
+                  {unit && <span className="text-gray-800 text-base ml-1">{unit}</span>}
+                </>
               ) : (
                 <span
                   className={`text-gray-800 text-base ${
@@ -391,11 +416,11 @@ const DataRow: React.FC<{
                   }`}
                 >
                   {value}
+                  {unit && <span className="ml-1">{unit}</span>} {/* ✅ Display unit next to value */}
                 </span>
               )
             ) : null
           ) : (
-            // Delete Button
             <button
               title="Delete"
               className="px-4 py-2 text-[#FF3B30] text-base font-semibold border border-[#FF3B30] rounded-lg hover:bg-[#FF3B30] hover:text-white transition"
@@ -405,7 +430,7 @@ const DataRow: React.FC<{
             </button>
           )}
 
-          {/* Toggle Button */}
+          {/* ✅ Toggle Button */}
           {onToggle && (
             <button
               title="Toggle"
@@ -424,7 +449,7 @@ const DataRow: React.FC<{
         </div>
       </div>
 
-      {/* Popup */}
+      {/* ✅ Popup */}
       {showPopup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-4 rounded-2xl shadow-lg w-[300px] text-center relative">
