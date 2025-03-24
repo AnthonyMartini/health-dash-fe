@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState} from "react";
 import { useNavigate } from "react-router-dom";
 import { FaArrowLeft, FaRegIdCard, FaLock, FaPencilAlt, FaCheck, FaTimes } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
@@ -162,6 +162,7 @@ const Profile: React.FC = () => {
               editable={isEditing}
               isBold
             />
+            <DataRow icon={<GiWeight />} label="BMI" value="33.6" isBold />
             {/* Delete Account Row */}
             <DataRow
               icon={<IoIosWarning />}
@@ -310,10 +311,11 @@ const DataRow: React.FC<{
   return (
     <>
       <div className="group flex flex-row justify-between items-center p-4 bg-[rgba(239,240,240,0.3)] rounded-lg w-full">
-        {/* Left Side: Icon & Text */}
+        {/* Left Side: Icon & Label */}
         <div className="flex flex-row items-center gap-3">
           <span className="text-[#C69DE6] text-lg">{icon}</span>
           <div className="flex flex-col">
+            {/* Label */}
             <span
               className={`text-gray-800 text-base ${
                 isDelete ? "font-semibold" : ""
@@ -322,29 +324,31 @@ const DataRow: React.FC<{
               {label}
             </span>
 
-            {/* Editable Input */}
-            {editable ? (
-              <input
-                type="text"
-                value={value}
-                onChange={(e) => onChange?.(e.target.value)}
-                className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-              />
-            ) : (isDelete || stacked) ? (
-              <p
-                className={`text-gray-800 text-base ${
-                  isBold && !noBoldValue ? "font-semibold" : ""
-                }`}
-              >
-                {value}
-              </p>
-            ) : null}
+            {/* Show value underneath the label for stacked types (Email and Phone) */}
+            {!isDelete && stacked && (
+              editable ? (
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(e) => onChange?.(e.target.value)}
+                  className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                />
+              ) : (
+                <span
+                  className={`text-gray-800 text-base ${
+                    isBold && !noBoldValue ? "font-semibold" : ""
+                  }`}
+                >
+                  {value}
+                </span>
+              )
+            )}
           </div>
         </div>
 
-        {/* Right Side Content */}
+        {/* Right Side: Value or Input */}
         <div className="flex flex-row items-center gap-3">
-          {/* Reset Password */}
+          {/* Reset Password Button */}
           {!isDelete ? (
             isPassword ? (
               <button
@@ -355,16 +359,25 @@ const DataRow: React.FC<{
                 Reset Password
               </button>
             ) : !stacked ? (
-              <span
-                className={`text-gray-800 text-base ${
-                  isBold ? "font-semibold" : ""
-                }`}
-              >
-                {value}
-              </span>
+              editable ? (
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(e) => onChange?.(e.target.value)}
+                  className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                />
+              ) : (
+                <span
+                  className={`text-gray-800 text-base ${
+                    isBold && !noBoldValue ? "font-semibold" : ""
+                  }`}
+                >
+                  {value}
+                </span>
+              )
             ) : null
           ) : (
-            /* Delete Button */
+            // Delete Button
             <button
               title="Delete"
               className="px-4 py-2 text-[#FF3B30] text-base font-semibold border border-[#FF3B30] rounded-lg hover:bg-[#FF3B30] hover:text-white transition"
@@ -418,6 +431,5 @@ const DataRow: React.FC<{
     </>
   );
 };
-
 
 export default Profile;
