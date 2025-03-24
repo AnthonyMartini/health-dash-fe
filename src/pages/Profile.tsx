@@ -8,7 +8,7 @@ import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
 import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
-import { apiRequest, API_ROUTES, ApiRoute } from "../utils/APIService";
+import { apiRequest, ApiRoute } from "../utils/APIService";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -27,11 +27,16 @@ const Profile: React.FC = () => {
   const [height, setHeight] = useState("190.5");
   const [weight, setWeight] = useState("122");
 
+  // ✅ State for validation errors
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [heightError, setHeightError] = useState<string | null>(null);
+  const [weightError, setWeightError] = useState<string | null>(null);
+
   // State for popups
   const [showResetPopup, setShowResetPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
-  // ✅ Fetch user data from the API
   const fetchUserData = async () => {
     try {
       const data = await apiRequest<{ username: string }>('GET_USER' as ApiRoute);
@@ -42,14 +47,90 @@ const Profile: React.FC = () => {
     }
   };
 
-  // 📌 Call the fetchUserData when the component loads
   useEffect(() => {
     fetchUserData();
   }, []);
 
+  // ✅ Email validation function
+  const validateEmail = (value: string) => {
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|co|io|info|biz|me)$/;
+    if (!emailPattern.test(value)) {
+      setEmailError("Invalid email format.");
+      return false;
+    }
+    setEmailError(null);
+    return true;
+  };
+
+  // ✅ Phone validation and formatting function
+  const validatePhone = (value: string) => {
+    // Remove all non-numeric characters
+    const cleanedValue = value.replace(/\D/g, "");
+
+    // ✅ Check for exactly 10 digits
+    if (cleanedValue.length !== 10) {
+      setPhoneError("Invalid phone number format.");
+      return false;
+    }
+
+    // ✅ Format into +1 (XXX) XXX-XXXX
+    const formattedPhone = `+1 (${cleanedValue.slice(0, 3)}) ${cleanedValue.slice(3, 6)}-${cleanedValue.slice(6)}`;
+
+    setPhone(formattedPhone); // ✅ Update the phone state with the formatted number
+    setPhoneError(null); // ✅ Clear any previous errors
+    return true;
+  };
+
+  // ✅ Height validation function
+  const validateHeight = (value: string) => {
+    if (!/^\d*\.?\d{0,1}$/.test(value) || value === "") {
+      setHeightError("Invalid height format. Numeric input to one decimal place allowed.");
+      return false;
+    }
+    setHeightError(null);
+    return true;
+  };
+
+  // ✅ Weight validation function
+  const validateWeight = (value: string) => {
+    if (!/^\d*\.?\d{0,1}$/.test(value) || value === "") {
+      setWeightError("Invalid weight format. Numeric input to one decimal place allowed.");
+      return false;
+    }
+    setWeightError(null);
+    return true;
+  };
+
+  // ✅ Handle Save (this runs when "Confirm" is clicked)
   const handleSave = () => {
-    setIsEditing(false);
-    console.log("Saved values:", { email, phone, birthDate, gender, height, weight });
+    let isValid = true;
+
+    // ✅ Validate email
+    if (!validateEmail(email)) {
+      isValid = false;
+    }
+
+    // ✅ Validate phone
+    if (!validatePhone(phone)) {
+      isValid = false;
+    }
+
+    // ✅ Validate height
+    if (!validateHeight(height)) {
+      isValid = false;
+    }
+
+    // ✅ Validate weight
+    if (!validateWeight(weight)) {
+      isValid = false;
+    }
+
+    if (isValid) {
+      console.log("Saved values:", { email, phone, birthDate, gender, height, weight });
+      setIsEditing(false);
+    } else {
+      console.log("Form has errors. Please fix them.");
+    }
   };
 
   const handleCancel = () => {
@@ -136,7 +217,9 @@ const Profile: React.FC = () => {
               isBold
               toggle={emailToggle}
               onToggle={() => setEmailToggle(!emailToggle)}
+              type="email"
             />
+            {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
             <DataRow
               icon={<AiFillPhone />}
               label="Phone"
@@ -147,7 +230,9 @@ const Profile: React.FC = () => {
               isBold
               toggle={phoneToggle}
               onToggle={() => setPhoneToggle(!phoneToggle)}
+              type="text"
             />
+            {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
             <DataRow
               icon={<BiCalendar />}
               label="Birth Date"
@@ -170,30 +255,24 @@ const Profile: React.FC = () => {
               icon={<GiBodyHeight />}
               label="Height"
               value={height}
-              onChange={(value) => {
-                // ✅ Allow only numbers and one decimal point
-                if (/^\d*\.?\d{0,1}$/.test(value) || value === "") {
-                  setHeight(value);
-                }
-              }}
+              type="number"
+              onChange={setHeight}
               editable={isEditing}
               isBold
               unit="cm"
             />
+            {heightError && <p className="text-red-500 text-sm">{heightError}</p>}
             <DataRow
               icon={<GiWeight />}
               label="Weight"
               value={weight}
-              onChange={(value) => {
-                // ✅ Allow only numbers and one decimal point
-                if (/^\d*\.?\d{0,1}$/.test(value) || value === "") {
-                  setWeight(value);
-                }
-              }}
+              type="number"
+              onChange={setWeight}
               editable={isEditing}
               isBold
               unit="kg"
             />
+            {weightError && <p className="text-red-500 text-sm">{weightError}</p>}
             <DataRow icon={<GiWeight />} label="BMI" value="33.6" isBold />
             {/* Delete Account Row */}
             <DataRow
@@ -291,12 +370,11 @@ const Popup: React.FC<{
 );
 
 // 📌 Updated Reusable DataRow Component
-// 📌 Updated Reusable DataRow Component
 const DataRow: React.FC<{
   icon: React.ReactNode;
   label: string;
   value: string;
-  type?: 'text' | 'number' | 'date'; // ✅ Added support for 'date'
+  type?: 'text' | 'number' | 'date' | 'email'; // ✅ Added support for 'date'
   isPassword?: boolean;
   isDelete?: boolean;
   stacked?: boolean;
