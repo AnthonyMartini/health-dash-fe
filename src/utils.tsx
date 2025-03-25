@@ -29,7 +29,6 @@ export type WorkoutPlanProps = {
 };
 
 export type DashboardDataProps = {
-  username: string;
   day_calories: number;
   day_steps: number;
   day_food: FoodItemProps[];

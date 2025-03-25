@@ -23,7 +23,6 @@ interface DashboardProps {
 //removes unwanted properties from data to send to api
 const filterData = (data: any): DashboardDataProps => {
   return {
-    username: data.username,
     day_calories: data.day_calories ?? 0,
     day_steps: data.day_steps ?? 0,
     day_food: Array.isArray(data.day_food) ? data.day_food : [],
@@ -136,7 +135,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       setUserDetails(hold);
       try {
         const result = await apiRequest("GET_HEALTH_DATA", {
-          queryParams: { username: hold.sub, date: "2025-03-06" },
+          queryParams: { date: "2025-03-06" },
         });
         setData(filterData(result.data));
       } catch {
@@ -166,7 +165,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-50/90 overflow-y-scroll">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
-            Welcome Back, {userDetails?.sub}
+            Welcome Back, {userDetails?.name}
           </h1>
           <h3 className=" text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
             Here is your health overview for the day:
@@ -340,7 +339,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   setData((prev) => {
                     const updatedData: DashboardDataProps = {
                       ...prev,
-                      username: userDetails?.sub ? userDetails.sub : "",
+
                       day_calories:
                         logMetric === "Calories"
                           ? logMetricValue
@@ -497,7 +496,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   setData((prev) => {
                     const updatedData: DashboardDataProps = {
                       ...prev,
-                      username: userDetails?.sub ? userDetails.sub : "",
+
                       day_food: [...prev.day_food, logConsumptionValue],
                     };
 

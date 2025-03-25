@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SideBar from "../components/SideBar";
 import { FaFireAlt } from "react-icons/fa";
 import { BsSuitHeartFill } from "react-icons/bs";
+import { apiRequest } from "../utils/APIService";
 
 /* ------------- DATA TYPES & MOCK ARRAYS ------------- */
 
@@ -16,6 +17,7 @@ interface PlanItem {
 // A plan card: name, influencer, optional favorite, totalCal, items array
 interface Plan {
   name: string;
+  workoutcard_id: string;
   influencer?: string; // e.g. "@TheRock"
   favorite?: boolean; // whether to show the heart icon
   totalCal: number;
@@ -27,6 +29,7 @@ const FavoritePlans: Plan[] = [
   {
     name: "John's Push Day",
     influencer: "@JohnJohn",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     favorite: true,
     totalCal: 640,
     items: [
@@ -38,6 +41,7 @@ const FavoritePlans: Plan[] = [
   {
     name: "God-like Push",
     influencer: "@TheRock",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     favorite: true,
     totalCal: 640,
     items: [
@@ -49,6 +53,7 @@ const FavoritePlans: Plan[] = [
   {
     name: "God-like Pull",
     influencer: "@Saitama",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     favorite: true,
     totalCal: 640,
     items: [
@@ -64,6 +69,7 @@ const PopularPlans: Plan[] = [
   {
     name: "God-like Push",
     influencer: "@TheRock",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     totalCal: 640,
     favorite: true,
     items: [
@@ -75,6 +81,7 @@ const PopularPlans: Plan[] = [
   {
     name: "God-like Pull",
     influencer: "@Saitama",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     totalCal: 640,
     favorite: true,
     items: [
@@ -86,6 +93,7 @@ const PopularPlans: Plan[] = [
   {
     name: "Cardio Plan",
     influencer: "@Saitama",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     totalCal: 320,
     items: [{ label: "Treadmill", detail: "30 min", color: "#E6EEFE" }],
   },
@@ -96,6 +104,7 @@ const DiscoverPlans: Plan[] = [
   {
     name: "John's Push Day",
     influencer: "@JohnJohn",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     favorite: true,
     totalCal: 640,
     items: [
@@ -106,6 +115,7 @@ const DiscoverPlans: Plan[] = [
   {
     name: "God-like Pull",
     influencer: "@BrianGriffin",
+    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
     totalCal: 640,
     items: [
       { label: "Pull Ups", detail: "3 sets", color: "#E6EEFE" },
@@ -118,18 +128,19 @@ const DiscoverPlans: Plan[] = [
 // Week plan type
 interface WeeklyDayPlan {
   day: string;
+  code: string;
   plans: string[]; // array of plan names
 }
 
 // Example “Your Week Plan”
 const initialWeeklyPlan: WeeklyDayPlan[] = [
-  { day: "Monday", plans: ["God-like Push", "Cardio Plan"] },
-  { day: "Tuesday", plans: ["God-like Pull"] },
-  { day: "Wednesday", plans: [] },
-  { day: "Thursday", plans: ["God-like Push"] },
-  { day: "Friday", plans: ["God-like Pull", "God-like Push"] },
-  { day: "Saturday", plans: ["Cardio Plan"] },
-  { day: "Sunday", plans: [] },
+  { day: "Monday", code: "MON", plans: ["God-like Push", "Cardio Plan"] },
+  { day: "Tuesday", code: "TUE", plans: ["God-like Pull"] },
+  { day: "Wednesday", code: "WED", plans: [] },
+  { day: "Thursday", code: "THU", plans: ["God-like Push"] },
+  { day: "Friday", code: "FRI", plans: ["God-like Pull", "God-like Push"] },
+  { day: "Saturday", code: "SAT", plans: ["Cardio Plan"] },
+  { day: "Sunday", code: "SUN", plans: [] },
 ];
 
 /* ------------- SMALL CARD COMPONENT ------------- */
@@ -209,6 +220,24 @@ const WorkoutPlan: React.FC = () => {
     setShowAddModal(false);
     setSelectedPlan("");
   };
+
+  //On screen load, grab user details and health data
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const result = await apiRequest("GET_WEEKLY_PLAN", {
+          queryParams: {},
+        });
+        console.log("REsult", result);
+        //setData(result.data);
+      } catch {
+        //blank data
+        //setData({});
+      }
+    }
+
+    fetchData();
+  }, []);
 
   return (
     <div className="h-full w-full flex flex-col md:flex-row">
