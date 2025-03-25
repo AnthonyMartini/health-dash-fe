@@ -207,9 +207,18 @@ const Profile: React.FC = () => {
 
           {/* User Name */}
           <div className="flex flex-col items-center md:items-start">
-            <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
-              {username || "Loading..."}
-            </h2>
+            {!isEditing ? (
+              <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
+                {username || "Loading..."}
+              </h2>
+            ) : (
+              <input
+                type="text"
+                value={username || ""}
+                onChange={(e) => setUsername(e.target.value)}
+                className="text-2xl md:text-3xl font-semibold text-gray-900 border-b border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent"
+              />
+            )}
           </div>
         </div>
 
