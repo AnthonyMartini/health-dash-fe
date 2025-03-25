@@ -1,178 +1,118 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import SideBar from "../components/SideBar";
 import { FaFireAlt } from "react-icons/fa";
 import { BsSuitHeartFill } from "react-icons/bs";
 import { apiRequest } from "../utils/APIService";
+import { CiTrash } from "react-icons/ci";
+import {
+  fetchUserAttributes,
+  FetchUserAttributesOutput,
+} from "aws-amplify/auth";
 
 /* ------------- DATA TYPES & MOCK ARRAYS ------------- */
 
 // Single exercise item displayed on plan cards
-interface PlanItem {
-  label: string; // e.g. "Bench Press"
-  detail: string; // e.g. "3 sets" or "30 min"
-  color: string; // background color for the chip
+interface ExerciseProps {
+  title: string;
+  weight: Number;
+  sets: Number;
+  reps: Number;
 }
 
-// A plan card: name, influencer, optional favorite, totalCal, items array
-interface Plan {
-  name: string;
+interface PlanProps {
+  workoutcard_title: string;
   workoutcard_id: string;
-  influencer?: string; // e.g. "@TheRock"
+  username: string; // e.g. "@TheRock"
   favorite?: boolean; // whether to show the heart icon
-  totalCal: number;
-  items: PlanItem[];
+  workoutcard_content: { exercises: ExerciseProps[] };
 }
 
-// “Your Favorite Plans”
-const FavoritePlans: Plan[] = [
-  {
-    name: "John's Push Day",
-    influencer: "@JohnJohn",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
+const filterPlans = (dataArray: any[]): PlanProps[] => {
+  return dataArray.map((data) => ({
+    workoutcard_title: data.workoutcard_title ?? "",
+    workoutcard_id: data.workoutcard_id ?? "",
+    username: data.username ?? "",
     favorite: true,
-    totalCal: 640,
-    items: [
-      { label: "DB Incline Press", detail: "3 sets", color: "#E6EEFE" },
-      { label: "Tricep Extensions", detail: "3 sets", color: "#D6F5DB" },
-      { label: "Lateral Raises", detail: "3 sets", color: "#FCF2E9" },
-    ],
-  },
-  {
-    name: "God-like Push",
-    influencer: "@TheRock",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
-    favorite: true,
-    totalCal: 640,
-    items: [
-      { label: "Bench Press", detail: "3 sets", color: "#E6EEFE" },
-      { label: "Tricep Extensions", detail: "3 sets", color: "#D6F5DB" },
-      { label: "Lateral Raises", detail: "3 sets", color: "#FCF2E9" },
-    ],
-  },
-  {
-    name: "God-like Pull",
-    influencer: "@Saitama",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
-    favorite: true,
-    totalCal: 640,
-    items: [
-      { label: "Cable Pull-downs", detail: "3 sets", color: "#E6EEFE" },
-      { label: "Cable Rows", detail: "3 sets", color: "#D6F5DB" },
-      { label: "Bicep Curls", detail: "3 sets", color: "#FCF2E9" },
-    ],
-  },
-];
+    workoutcard_content: {
+      exercises: Array.isArray(data.workoutcard_content?.exercises)
+        ? data.workoutcard_content.exercises
+        : [],
+    },
+  }));
+};
 
-// “Popular Plans”
-const PopularPlans: Plan[] = [
-  {
-    name: "God-like Push",
-    influencer: "@TheRock",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
-    totalCal: 640,
-    favorite: true,
-    items: [
-      { label: "Bench Press", detail: "3 sets", color: "#E6EEFE" },
-      { label: "Tricep Extensions", detail: "3 sets", color: "#D6F5DB" },
-      { label: "Lateral Raises", detail: "3 sets", color: "#FCF2E9" },
-    ],
-  },
-  {
-    name: "God-like Pull",
-    influencer: "@Saitama",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
-    totalCal: 640,
-    favorite: true,
-    items: [
-      { label: "Cable Pull-downs", detail: "3 sets", color: "#E6EEFE" },
-      { label: "Cable Rows", detail: "3 sets", color: "#D6F5DB" },
-      { label: "Bicep Curls", detail: "3 sets", color: "#FCF2E9" },
-    ],
-  },
-  {
-    name: "Cardio Plan",
-    influencer: "@Saitama",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
-    totalCal: 320,
-    items: [{ label: "Treadmill", detail: "30 min", color: "#E6EEFE" }],
-  },
-];
+const filterWeekly = (data: any): WeeklyPlan[] => {
+  return [
+    { day: "Monday", plans: data.MON ?? [] },
+    { day: "Tuesday", plans: data.TUE ?? [] },
+    { day: "Wednesday", plans: data.WED ?? [] },
+    { day: "Thursday", plans: data.THU ?? [] },
+    { day: "Friday", plans: data.FRI ?? [] },
+    { day: "Saturday", plans: data.SAT ?? [] },
+    { day: "Sunday", plans: data.SUN ?? [] },
+  ];
+};
+const dayMapping: Record<string, string> = {
+  Monday: "MON",
+  Tuesday: "TUE",
+  Wednesday: "WED",
+  Thursday: "THU",
+  Friday: "FRI",
+  Saturday: "SAT",
+  Sunday: "SUN",
+};
 
-// “Discover Plans”
-const DiscoverPlans: Plan[] = [
-  {
-    name: "John's Push Day",
-    influencer: "@JohnJohn",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
-    favorite: true,
-    totalCal: 640,
-    items: [
-      { label: "DB Incline Press", detail: "3 sets", color: "#E6EEFE" },
-      { label: "Tricep Extensions", detail: "3 sets", color: "#D6F5DB" },
-    ],
-  },
-  {
-    name: "God-like Pull",
-    influencer: "@BrianGriffin",
-    workoutcard_id: "03dad80a-d346-4128-a74b-7922200ec4ad",
-    totalCal: 640,
-    items: [
-      { label: "Pull Ups", detail: "3 sets", color: "#E6EEFE" },
-      { label: "Cable Rows", detail: "3 sets", color: "#D6F5DB" },
-      { label: "T Bar Rows", detail: "3 sets", color: "#FCF2E9" },
-    ],
-  },
-];
-
-// Week plan type
-interface WeeklyDayPlan {
+interface dailyPlanProps {
+  workoutcard_title: string;
+  workoutcard_id: string;
+  workoutcard_content: { exercises: ExerciseProps[] };
+}
+interface WeeklyPlan {
   day: string;
-  code: string;
-  plans: string[]; // array of plan names
+  plans: dailyPlanProps[];
 }
-
-// Example “Your Week Plan”
-const initialWeeklyPlan: WeeklyDayPlan[] = [
-  { day: "Monday", code: "MON", plans: ["God-like Push", "Cardio Plan"] },
-  { day: "Tuesday", code: "TUE", plans: ["God-like Pull"] },
-  { day: "Wednesday", code: "WED", plans: [] },
-  { day: "Thursday", code: "THU", plans: ["God-like Push"] },
-  { day: "Friday", code: "FRI", plans: ["God-like Pull", "God-like Push"] },
-  { day: "Saturday", code: "SAT", plans: ["Cardio Plan"] },
-  { day: "Sunday", code: "SUN", plans: [] },
-];
 
 /* ------------- SMALL CARD COMPONENT ------------- */
 interface SmallPlanCardProps {
-  plan: Plan;
+  plan: PlanProps;
   onAddToWeekPlan?: (planName: string) => void;
+  setConfirmDelete: (planID: string) => void;
 }
 const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
   plan,
   onAddToWeekPlan,
+  setConfirmDelete,
 }) => (
-  <div className="w-full sm:w-[250px] bg-white shadow-md rounded-xl p-3 flex flex-col gap-2">
+  <div className="w-full sm:w-[230px] bg-white shadow-md rounded-xl p-3 flex flex-col gap-2 justify-between">
     {/* Title & Heart */}
     <div className="flex justify-between items-center">
-      <span className="text-gray-600 font-semibold text-sm">
-        {plan.name}{" "}
-        {plan.influencer && (
-          <span className="text-xs text-gray-500">by {plan.influencer}</span>
+      <div className="flex flex-col">
+        <span className="text-sm font-bold text-black w-full">
+          {plan.workoutcard_title}
+        </span>
+        {plan.username && (
+          <span className="text-xs text-gray-500">
+            by @{plan.username.slice(0, 10)}
+          </span>
         )}
-      </span>
+      </div>
+
       {plan.favorite && <BsSuitHeartFill className="text-red-500" />}
     </div>
 
     {/* Items (chips) */}
-    <div className="flex flex-wrap gap-2">
-      {plan.items.map((item, idx) => (
+    <div className="flex flex-wrap gap-1 h-[100px] overflow-y-auto px-1 content-start">
+      {plan.workoutcard_content.exercises.map((item, idx) => (
         <div
           key={idx}
-          className="rounded-lg px-2 py-1 text-xs font-semibold"
-          style={{ backgroundColor: item.color }}
+          className="rounded-lg px-2 py-1 text-sm font-semibold w-full h-[30px] flex"
+          style={{ backgroundColor: "#42b0f5" }}
         >
-          {item.label} <span className="ml-1 text-gray-700">{item.detail}</span>
+          <span className="flex-1 ">{item.title}</span>
+
+          <span className="ml-2 text-gray-700">
+            {item.sets.toString()} Sets
+          </span>
         </div>
       ))}
     </div>
@@ -180,13 +120,23 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
     {/* Footer row: calorie + + button */}
     <div className="flex justify-between items-center">
       <div className="flex items-center gap-1 text-sm text-black">
+        <div className="stroke-amber-700">
+          <CiTrash
+            size={20}
+            color="red"
+            className="cursor-pointer"
+            onClick={() => {
+              setConfirmDelete(plan.workoutcard_id);
+            }}
+          />
+        </div>
         <FaFireAlt />
-        <span>{plan.totalCal} cal</span>
+        <span>{120} cal</span>
       </div>
       {onAddToWeekPlan && (
         <button
           className="text-blue-600 text-lg hover:scale-105"
-          onClick={() => onAddToWeekPlan(plan.name)}
+          onClick={() => onAddToWeekPlan(plan.workoutcard_title)}
         >
           +
         </button>
@@ -197,19 +147,29 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
 
 /* ------------- MAIN PAGE ------------- */
 const WorkoutPlan: React.FC = () => {
-  const navigate = useNavigate();
-  const [weeklyPlan, setWeeklyPlan] =
-    useState<WeeklyDayPlan[]>(initialWeeklyPlan);
+  //User Data
+  const [FavoritePlans, setFavoritePlans] = useState<PlanProps[]>(
+    filterPlans([])
+  );
+  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan[]>(filterWeekly([]));
+
+  //Modal for deleting workout:
+  const [confirmDelete, setConfirmDelete] = useState("");
+
+  //Modal for creating a new workout:
+  const [createWorkout, setCreateWorkout] = useState(false);
+  const [exercises, setExercises] = useState([
+    { title: "", sets: 0, reps: 0, weight: 0 },
+  ]);
+  const [workoutName, setWorkoutName] = useState("");
 
   // Modal for adding a plan
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<string>("");
-
-  // Open modal
-  const handleAddToWeekPlan = (planName: string) => {
-    setSelectedPlan(planName);
-    setShowAddModal(true);
-  };
+  const [selectedPlan, setSelectedPlan] = useState<PlanProps>({
+    workoutcard_title: "",
+    username: "",
+    workoutcard_id: "",
+    workoutcard_content: { exercises: [] },
+  });
 
   // Add plan to a specific day
   const handleAddPlanToDay = (day: string) => {
@@ -217,22 +177,31 @@ const WorkoutPlan: React.FC = () => {
       w.day === day ? { ...w, plans: [...w.plans, selectedPlan] } : w
     );
     setWeeklyPlan(updated);
-    setShowAddModal(false);
-    setSelectedPlan("");
+    setSelectedPlan({
+      workoutcard_title: "",
+      username: "",
+      workoutcard_id: "",
+      workoutcard_content: { exercises: [] },
+    });
   };
 
   //On screen load, grab user details and health data
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await apiRequest("GET_WEEKLY_PLAN", {
+        const result = await apiRequest("GET_WORKOUT_CARD", {
+          queryParams: { action: "user" },
+        });
+        setFavoritePlans(filterPlans(result.data));
+
+        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
           queryParams: {},
         });
-        console.log("REsult", result);
-        //setData(result.data);
+        console.log("Weekly", result2.data);
+        setWeeklyPlan(filterWeekly(result2.data));
       } catch {
         //blank data
-        //setData({});
+        setFavoritePlans(filterPlans([]));
       }
     }
 
@@ -256,18 +225,19 @@ const WorkoutPlan: React.FC = () => {
               Your Favorite Plans
             </h2>
             <button
-              onClick={() => navigate("/create-plan")}
+              onClick={() => setCreateWorkout(true)}
               className="text-red-500 text-sm hover:underline"
             >
               + Create Your Own
             </button>
           </div>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 ">
             {FavoritePlans.map((plan, idx) => (
               <SmallPlanCard
                 key={idx}
                 plan={plan}
-                onAddToWeekPlan={handleAddToWeekPlan}
+                onAddToWeekPlan={() => setSelectedPlan(plan)}
+                setConfirmDelete={(planID) => setConfirmDelete(planID)}
               />
             ))}
           </div>
@@ -279,11 +249,12 @@ const WorkoutPlan: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold">Popular Plans</h2>
           </div>
           <div className="flex flex-wrap gap-4">
-            {PopularPlans.map((plan, idx) => (
+            {FavoritePlans.slice(0, 1).map((plan, idx) => (
               <SmallPlanCard
                 key={idx}
                 plan={plan}
-                onAddToWeekPlan={handleAddToWeekPlan}
+                onAddToWeekPlan={() => setSelectedPlan(plan)}
+                setConfirmDelete={(planID) => setConfirmDelete(planID)}
               />
             ))}
           </div>
@@ -295,11 +266,12 @@ const WorkoutPlan: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold">Discover Plans</h2>
           </div>
           <div className="flex flex-wrap gap-4">
-            {DiscoverPlans.map((plan, idx) => (
+            {FavoritePlans.slice(0, 1).map((plan, idx) => (
               <SmallPlanCard
                 key={idx}
                 plan={plan}
-                onAddToWeekPlan={handleAddToWeekPlan}
+                onAddToWeekPlan={() => setSelectedPlan(plan)}
+                setConfirmDelete={(planID) => setConfirmDelete(planID)}
               />
             ))}
           </div>
@@ -336,9 +308,39 @@ const WorkoutPlan: React.FC = () => {
                     {wDay.plans.map((pName, idx) => (
                       <div
                         key={idx}
-                        className="bg-red-100 text-red-500 text-xs rounded px-2 py-1 text-center font-semibold"
+                        className="bg-red-100 text-red-500 text-xs rounded px-2 py-1 text-center font-semibold flex justify-between"
                       >
-                        {pName}
+                        <span>{pName.workoutcard_title}</span>
+                        <CiTrash
+                          size={16}
+                          className="cursor-pointer"
+                          onClick={() => {
+                            async function sendData() {
+                              try {
+                                //delete card on DB
+                                await apiRequest("DELETE_WEEKLY_PLAN", {
+                                  body: {
+                                    workoutcard_id: pName.workoutcard_id,
+                                    day_of_week: dayMapping[wDay.day],
+                                  },
+                                });
+                              } catch {}
+                            }
+                            sendData();
+                            setWeeklyPlan((prevWeeklyPlan) =>
+                              prevWeeklyPlan.map((day) =>
+                                day.day === wDay.day
+                                  ? {
+                                      ...day,
+                                      plans: day.plans.filter(
+                                        (_, index) => index !== idx
+                                      ),
+                                    }
+                                  : day
+                              )
+                            );
+                          }}
+                        />
                       </div>
                     ))}
                   </div>
@@ -350,14 +352,18 @@ const WorkoutPlan: React.FC = () => {
       </div>
 
       {/* MODAL: Add a plan to a day */}
-      {showAddModal && (
+      {selectedPlan.workoutcard_title != "" && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-4 rounded-xl shadow-md w-[300px] h-[440px] relative">
+          <div className="bg-white p-4 rounded-xl shadow-md w-[300px] h-[480px] relative">
             <div className="flex justify-end h-[30px] items-start">
               <button
                 onClick={() => {
-                  setShowAddModal(false);
-                  setSelectedPlan("");
+                  setSelectedPlan({
+                    workoutcard_title: "",
+                    username: "",
+                    workoutcard_id: "",
+                    workoutcard_content: { exercises: [] },
+                  });
                 }}
                 className=" text-red-500  hover:underline hover:cursor-pointer "
               >
@@ -365,18 +371,217 @@ const WorkoutPlan: React.FC = () => {
               </button>
             </div>
             <h2 className="text-xl font-bold text-center mb-2">
-              Add "{selectedPlan}" to…
+              Add "{selectedPlan.workoutcard_title}" to…
             </h2>
             <div className="flex flex-col items-center gap-2">
               {weeklyPlan.map((dayData) => (
                 <button
                   key={dayData.day}
-                  onClick={() => handleAddPlanToDay(dayData.day)}
+                  onClick={() => {
+                    handleAddPlanToDay(dayData.day);
+                    //here
+                    async function sendData() {
+                      try {
+                        //delete card on DB
+                        await apiRequest("STORE_WEEKLY_PLAN", {
+                          body: {
+                            workoutcard_id: selectedPlan.workoutcard_id,
+                            day_of_week: dayMapping[dayData.day],
+                          },
+                        });
+                      } catch {}
+                    }
+                    sendData();
+                  }}
                   className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 text-sm"
                 >
                   {dayData.day}
                 </button>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {createWorkout && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[400px] h-[700px] text-center relative ">
+            <div className="flex justify-end h-[30px] items-start">
+              <button
+                title="Close"
+                onClick={() => setCreateWorkout(false)}
+                className=" text-red-500  hover:underline hover:cursor-pointer "
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 items-center ">
+              <h2 className="text-xl font-bold">Create Custom Workout</h2>
+
+              {/* Workout Name Input */}
+              <div className="mt-4">
+                <label className="text-sm font-semibold flex items-center space-x-2">
+                  <span>Workout Name:</span>
+                  <input
+                    type="text"
+                    placeholder="My Epic Pull Day"
+                    className=" rounded p-2 w-[200px] border border-gray-700"
+                    onChange={(e) => setWorkoutName(e.target.value)}
+                  />
+                </label>
+              </div>
+              {/* Exercise List */}
+              <div className="mt-4 space-y-2 text-left overflow-y-auto h-[420px]">
+                {exercises.map((exercise, index) => (
+                  <div
+                    key={index}
+                    className={`p-3 shadow-lg rounded-lg flex items-center justify-between gap-2 ${
+                      index % 2 === 0 ? "bg-blue-50" : "bg-green-50"
+                    }`}
+                  >
+                    <div className="flex-1">
+                      <label className="text-sm font-semibold text-blue-500 block">
+                        Exercise Name:
+                      </label>
+                      <input
+                        type="text"
+                        placeholder={index === 0 ? "Pull Downs" : "Placeholder"}
+                        className="bg-white border border-gray-700 p-2 w-full rounded"
+                        value={exercise.title}
+                        onChange={(e) =>
+                          setExercises(
+                            exercises.map((ex, i) =>
+                              i === index
+                                ? { ...ex, title: e.target.value }
+                                : ex
+                            )
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <div>
+                        <label className="text-sm font-semibold text-gray-700 block">
+                          Sets:
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="###"
+                          className="bg-white border border-gray-700 p-2 w-16 rounded text-center"
+                          value={exercise.sets}
+                          onChange={(e) =>
+                            setExercises(
+                              exercises.map((ex, i) =>
+                                i === index
+                                  ? { ...ex, sets: Number(e.target.value) }
+                                  : ex
+                              )
+                            )
+                          }
+                        />
+                      </div>
+                      <button
+                        title="remove exercise"
+                        onClick={() =>
+                          setExercises(exercises.filter((_, i) => i !== index))
+                        }
+                        className="text-red-500"
+                      >
+                        <CiTrash size={24} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {/* Add Exercise Button */}
+              <button
+                onClick={() =>
+                  setExercises([
+                    ...exercises,
+                    { title: "", sets: 0, reps: 0, weight: 0 },
+                  ])
+                }
+                className="text-red-500 mt-3 block text-sm font-semibold"
+              >
+                + Add Exercise
+              </button>
+              <button
+                title="Close"
+                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
+                onClick={() => {
+                  async function sendData() {
+                    try {
+                      //Create new card on backend
+                      const result = await apiRequest("UPDATE_WORKOUT_CARD", {
+                        body: {
+                          workoutcard_title: workoutName,
+                          workoutcard_content: { exercises: exercises },
+                        },
+                      });
+                      //update favorite plans (our plans) with new workoutplan with ID from DB:
+                      setFavoritePlans([
+                        ...FavoritePlans,
+                        {
+                          username: "ME!",
+                          workoutcard_id: result.workoutcard_id,
+                          workoutcard_title: workoutName,
+                          workoutcard_content: { exercises: exercises },
+                        },
+                      ]);
+                    } catch {}
+                  }
+
+                  sendData();
+                  //Reset everything
+                  setCreateWorkout(false);
+                  setExercises([{ title: "", sets: 0, reps: 0, weight: 0 }]);
+                  setWorkoutName("");
+                }}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {confirmDelete != "" && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[150px] text-center relative ">
+            <div className="flex justify-end h-[30px] items-start">
+              <button
+                title="Close"
+                onClick={() => setConfirmDelete("")}
+                className=" text-red-500  hover:underline hover:cursor-pointer "
+              >
+                Close
+              </button>
+            </div>
+            <div className="flex flex-col gap-2 items-center">
+              <h2 className="text-2xl font-bold">Confirm Delete Plan</h2>
+
+              <button
+                title="Close"
+                className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 w-[200px]"
+                onClick={() => {
+                  async function sendData() {
+                    try {
+                      //delete card on DB
+                      await apiRequest("DELETE_WORKOUT_CARD", {
+                        body: { workoutcard_id: confirmDelete },
+                      });
+                      //Remove Card from front end
+                      setFavoritePlans((prev) =>
+                        prev.filter(
+                          (plan) => plan.workoutcard_id !== confirmDelete
+                        )
+                      );
+                    } catch {}
+                  }
+                  sendData();
+                  setConfirmDelete("");
+                }}
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>

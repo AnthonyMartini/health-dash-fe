@@ -54,13 +54,13 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
 
   const handleToggleGoal = async (title: string) => {
     const previousGoals = [...goals];
-    
+
     // Step 1: Update state immediately for responsive UI
     const updatedGoals = goals.map((goal) =>
       goal.title === title ? { ...goal, status: !goal.status } : goal
     );
     setGoals(updatedGoals);
-  
+
     try {
       // Step 2: Send the entire array of goals to the backend
       await apiRequest("UPDATE_GOALS", {
@@ -68,11 +68,11 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
           goal: updatedGoals, // ✅ Send the whole list of goals
         },
       });
-  
+
       console.log("Goals updated successfully!");
     } catch (error) {
       console.error("Failed to update goals:", error);
-  
+
       // ✅ Roll back state only on real failure
       setGoals(previousGoals);
     }
@@ -82,14 +82,10 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
   const handleAddGoal = () => {
     if (!newGoal.trim()) return;
 
-    setGoals((prevGoals) => [
-      ...prevGoals,
-      { title: newGoal, status: false },
-    ]);
+    setGoals((prevGoals) => [...prevGoals, { title: newGoal, status: false }]);
     setNewGoal("");
   };
 
-  
   // ✅ Delete goal logic
   const handleDeleteGoal = async (title: string) => {
     const previousGoals = [...goals];
@@ -165,13 +161,12 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
             placeholder="Add a new goal..."
           />
           <button
+            title="Add Goal"
             type="button"
             onClick={handleAddGoal} // ✅ Add goal on click
             className="flex items-center justify-center"
           >
-            <FaCheck
-              className="text-[#34C759] w-6 h-6 cursor-pointer"
-            />
+            <FaCheck className="text-[#34C759] w-6 h-6 cursor-pointer" />
           </button>
         </div>
 
@@ -190,7 +185,10 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
               {goals
                 .filter((goal) => !goal.status)
                 .map((goal) => (
-                  <div key={goal.title} className="flex justify-between items-center mt-2">
+                  <div
+                    key={goal.title}
+                    className="flex justify-between items-center mt-2"
+                  >
                     <span className="text-[12px] text-black leading-[16px] w-[156px]">
                       {goal.title}
                     </span>
@@ -201,7 +199,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
                   </div>
                 ))}
             </div>
-            
+
             {/* Completed Goals */}
             <div className="bg-gray-50/90 bg-opacity-30 rounded-[15px] p-[10px] w-[230px]">
               <span className="text-[#34C759] text-[16px] font-normal mb-2">
@@ -234,9 +232,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
             </div>
           </>
         ) : (
-          <div className="text-gray-400 text-[14px] mt-4">
-            No goals found.
-          </div>
+          <div className="text-gray-400 text-[14px] mt-4">No goals found.</div>
         )}
       </div>
     </div>
