@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { CgGym } from "react-icons/cg";
-import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
+import { FaCheckSquare, FaRegSquare, FaCheck } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 import { apiRequest } from "../utils/APIService";
 
 interface SideBarProps {
@@ -19,6 +20,8 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [newGoal, setNewGoal] = useState<string>(""); // ✅ New goal state
+  const [hoveredGoal, setHoveredGoal] = useState<string | null>(null); // ✅ Track hover state
 
   useEffect(() => {
     async function fetchData() {
@@ -49,12 +52,62 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
     fetchData();
   }, []);
 
-  const handleToggleGoal = (index: number) => {
-    setGoals((prevGoals) =>
-      prevGoals.map((goal, i) =>
-        i === index ? { ...goal, status: !goal.status } : goal
-      )
+  const handleToggleGoal = async (title: string) => {
+    const previousGoals = [...goals];
+    
+    // Step 1: Update state immediately for responsive UI
+    const updatedGoals = goals.map((goal) =>
+      goal.title === title ? { ...goal, status: !goal.status } : goal
     );
+    setGoals(updatedGoals);
+  
+    try {
+      // Step 2: Send the entire array of goals to the backend
+      await apiRequest("UPDATE_GOALS", {
+        body: {
+          goal: updatedGoals, // ✅ Send the whole list of goals
+        },
+      });
+  
+      console.log("Goals updated successfully!");
+    } catch (error) {
+      console.error("Failed to update goals:", error);
+  
+      // ✅ Roll back state only on real failure
+      setGoals(previousGoals);
+    }
+  };
+
+  // ✅ Add new goal to the list
+  const handleAddGoal = () => {
+    if (!newGoal.trim()) return;
+
+    setGoals((prevGoals) => [
+      ...prevGoals,
+      { title: newGoal, status: false },
+    ]);
+    setNewGoal("");
+  };
+
+  
+  // ✅ Delete goal logic
+  const handleDeleteGoal = async (title: string) => {
+    const previousGoals = [...goals];
+    const updatedGoals = goals.filter((goal) => goal.title !== title); // ✅ Remove goal from state
+    setGoals(updatedGoals);
+
+    try {
+      console.log(`Deleting goal: ${title}`);
+      await apiRequest("UPDATE_GOALS", {
+        body: {
+          goal: updatedGoals, // ✅ Send updated list after deletion
+        },
+      });
+      console.log("Goal deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete goal:", error);
+      setGoals(previousGoals); // ✅ Rollback on failure
+    }
   };
 
   const buttons = [
@@ -97,8 +150,28 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
           <span className="text-[#DF1111] font-semibold text-[16px]">
             Goals
           </span>
-          <button className="text-[#FF3B30] text-[16px] hover:underline">
-            + Add Goal
+        </div>
+
+        {/* ✅ New Goal Input */}
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            value={newGoal}
+            onChange={(e) => setNewGoal(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === "Enter") handleAddGoal();
+            }}
+            className="flex-1 border border-gray-300 w-[180px] rounded-[10px] px-3 py-2 text-sm focus:outline-none focus:border-[#DF1111]"
+            placeholder="Add a new goal..."
+          />
+          <button
+            type="button"
+            onClick={handleAddGoal} // ✅ Add goal on click
+            className="flex items-center justify-center"
+          >
+            <FaCheck
+              className="text-[#34C759] w-6 h-6 cursor-pointer"
+            />
           </button>
         </div>
 
@@ -116,22 +189,19 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
               </span>
               {goals
                 .filter((goal) => !goal.status)
-                .map((goal, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center mt-2"
-                  >
+                .map((goal) => (
+                  <div key={goal.title} className="flex justify-between items-center mt-2">
                     <span className="text-[12px] text-black leading-[16px] w-[156px]">
                       {goal.title}
                     </span>
                     <FaRegSquare
                       className="text-[#FF3B30] w-6 h-6 cursor-pointer"
-                      onClick={() => handleToggleGoal(index)}
+                      onClick={() => handleToggleGoal(goal.title)}
                     />
                   </div>
                 ))}
             </div>
-
+            
             {/* Completed Goals */}
             <div className="bg-gray-50/90 bg-opacity-30 rounded-[15px] p-[10px] w-[230px]">
               <span className="text-[#34C759] text-[16px] font-normal mb-2">
@@ -139,18 +209,26 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
               </span>
               {goals
                 .filter((goal) => goal.status)
-                .map((goal, index) => (
+                .map((goal) => (
                   <div
-                    key={index}
+                    key={goal.title}
                     className="flex justify-between items-center mt-2"
                   >
                     <span className="text-[12px] text-black leading-[16px] w-[156px]">
                       {goal.title}
                     </span>
-                    <FaCheckSquare
-                      className="text-[#34C759] w-6 h-6 cursor-pointer"
-                      onClick={() => handleToggleGoal(index)}
-                    />
+                    <button
+                      onMouseEnter={() => setHoveredGoal(goal.title)}
+                      onMouseLeave={() => setHoveredGoal(null)}
+                      onClick={() => handleDeleteGoal(goal.title)}
+                      className="flex items-center justify-center"
+                    >
+                      {hoveredGoal === goal.title ? (
+                        <MdDelete className="text-[#FF3B30] w-6 h-6 cursor-pointer" />
+                      ) : (
+                        <FaCheckSquare className="text-[#34C759] w-6 h-6 cursor-pointer" />
+                      )}
+                    </button>
                   </div>
                 ))}
             </div>
