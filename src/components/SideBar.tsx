@@ -79,11 +79,23 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
   };
 
   // ✅ Add new goal to the list
-  const handleAddGoal = () => {
+  const handleAddGoal = async () => {
     if (!newGoal.trim()) return;
+
+    const updatedGoals = [...goals, { title: newGoal, status: false }];
 
     setGoals((prevGoals) => [...prevGoals, { title: newGoal, status: false }]);
     setNewGoal("");
+    try {
+      await apiRequest("UPDATE_GOALS", {
+        body: {
+          goal: updatedGoals,
+        },
+      });
+      console.log("New goal added and saved!");
+    } catch (error) {
+      console.error("Failed to save new goal:", error);
+    }
   };
 
   // ✅ Delete goal logic
