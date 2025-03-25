@@ -35,7 +35,6 @@ const Profile: React.FC = () => {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [heightError, setHeightError] = useState<string | null>(null);
-  const [weightError, setWeightError] = useState<string | null>(null);
 
   // State for popups
   const [showResetPopup, setShowResetPopup] = useState(false);
@@ -114,28 +113,66 @@ const Profile: React.FC = () => {
     return true;
   };
 
-  // ✅ Weight validation function
-  const validateWeight = (value: string) => {
-    if (!/^\d*\.?\d{0,1}$/.test(value) || value === "") {
-      setWeightError("Invalid weight format. Numeric input to one decimal place allowed.");
-      return false;
+  // ✅ Calculate BMI
+  const calculateBMI = () => {
+    if (height && weight) {
+      const heightInMeters = parseFloat(height) / 100;
+      if (heightInMeters > 0) {
+        return (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(1);
+      }
     }
-    setWeightError(null);
-    return true;
+    return "N/A";
   };
 
   // ✅ Handle Save
-  const handleSave = () => {
+  const handleSave = async () => {
     let isValid = true;
-
+  
     if (!validateEmail(email || "")) isValid = false;
     if (!validatePhone(phone || "")) isValid = false;
     if (!validateHeight(height || "")) isValid = false;
-    if (!validateWeight(weight || "")) isValid = false;
-
+  
     if (isValid) {
-      console.log("Saved values:", { email, phone, birthDate, gender, height, weight });
-      setIsEditing(false);
+      try {
+        console.log("Updating user data...");
+  
+        // ✅ Build request body (only updatable fields)
+        const updatedUserData = {
+          nickname: username || "",
+          user_profile_picture_url: profilePicture || "",
+          email: email || "",
+          phone: phone || "",
+          birthdate: birthDate || "",
+          gender: gender === "Male" ? true : false,
+          height: height ? parseFloat(height) : 0,
+          first_name: "John",
+          last_name: "Doe",
+        };
+  
+        console.log("Request Body:", updatedUserData);
+  
+        // ✅ Update state first, then call API
+        setUsername(updatedUserData.nickname);
+        setProfilePicture(updatedUserData.user_profile_picture_url);
+        setEmail(updatedUserData.email);
+        setPhone(updatedUserData.phone);
+        setBirthDate(updatedUserData.birthdate);
+        setGender(updatedUserData.gender ? "Male" : "Female");
+        setHeight(updatedUserData.height.toString());
+
+        console.log("Updated User Data:", updatedUserData);
+
+        // ✅ Immediately call API to persist changes
+        await apiRequest("UPDATE_USER" as ApiRoute, {
+          body: updatedUserData,
+        });
+  
+        console.log("Profile updated successfully");
+        setIsEditing(false);
+      } catch (error) {
+        console.error("Failed to update user data:", error);
+        alert(`Failed to update profile: ${error}`);
+      }
     }
   };
 
@@ -162,7 +199,8 @@ const Profile: React.FC = () => {
         <div className="flex flex-col md:flex-row items-center text-center md:text-left md:justify-start w-full gap-6 md:gap-10 border-b border-gray-200 pb-6">
           {/* Profile Picture */}
           <img
-            src={profilePicture || DefaultAvatar}
+            // profilePicture || 
+            src={DefaultAvatar}
             alt="Profile"
             className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
           />
@@ -274,13 +312,10 @@ const Profile: React.FC = () => {
               label="Weight"
               value={weight || ""}
               type="number"
-              onChange={setWeight}
-              editable={isEditing}
               isBold
               unit="kg"
             />
-            {weightError && <p className="text-red-500 text-sm">{weightError}</p>}
-            <DataRow icon={<GiWeight />} label="BMI" value="33.6" isBold />
+            <DataRow icon={<GiWeight />} label="BMI" value={calculateBMI()} isBold />
             {/* Delete Account Row */}
             <DataRow
               icon={<IoIosWarning />}
@@ -294,8 +329,8 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-      {/* Achievements Section */}
-        <AchievementsSection />
+      {/* Achievements Section
+        <AchievementsSection /> */}
       </div>
       
       {/* POPUPS */}
@@ -323,7 +358,6 @@ const Profile: React.FC = () => {
     </div>
   );
 };
-
 
 // 🏆 Achievements Section
 const AchievementsSection: React.FC = () => {
@@ -381,7 +415,7 @@ const DataRow: React.FC<{
   icon: React.ReactNode;
   label: string;
   value: string;
-  type?: 'text' | 'number' | 'date' | 'email'; // ✅ Added support for 'date'
+  type?: 'text' | 'number' | 'date' | 'email';
   isPassword?: boolean;
   isDelete?: boolean;
   stacked?: boolean;
@@ -598,6 +632,5 @@ const DataRow: React.FC<{
     </>
   );
 };
-
 
 export default Profile;
