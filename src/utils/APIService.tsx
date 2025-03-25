@@ -19,6 +19,7 @@ export const API_ROUTES = {
   UPDATE_USER: { path: "/user-profile", method: API_METHODS.POST },
   DELETE_USER: { path: "/user-profile", method: API_METHODS.DELETE },
   UPDATE_WORKOUT_CARD: { path: "/workoutplan-card", method: API_METHODS.POST },
+  GET_WORKOUT_CARD: { path: "/workoutplan-card", method: API_METHODS.GET},
   GET_WEEKLY_PLAN: { path: "/workoutplan-weekly", method: API_METHODS.GET },
   STORE_WEEKLY_PLAN: { path: "/workoutplan-weekly", method: API_METHODS.POST },
   LIST_TABLE: { path: "/health-data/tables", method: API_METHODS.GET },
