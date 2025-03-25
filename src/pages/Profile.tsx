@@ -19,13 +19,17 @@ const Profile: React.FC = () => {
 
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
+
+  // ✅ State for user data
+  const [userId, setUserId] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
-  const [email, setEmail] = useState("petergriffin@mail.com");
-  const [phone, setPhone] = useState("+1 (111) 111-1111");
-  const [birthDate, setBirthDate] = useState("2025-02-11");
-  const [gender, setGender] = useState("Male");
-  const [height, setHeight] = useState("190.5");
-  const [weight, setWeight] = useState("122");
+  const [email, setEmail] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null>(null);
+  const [birthDate, setBirthDate] = useState<string | null>(null);
+  const [gender, setGender] = useState<string | null>(null);
+  const [height, setHeight] = useState<string | null>(null);
+  const [weight, setWeight] = useState<string | null>(null);
 
   // ✅ State for validation errors
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -37,16 +41,29 @@ const Profile: React.FC = () => {
   const [showResetPopup, setShowResetPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
 
+  // ✅ Fetch user data from API
   const fetchUserData = async () => {
     try {
-      const data = await apiRequest<{ username: string }>('GET_USER' as ApiRoute);
-      console.log("Fetched user data:", data);
-      setUsername(data.username); // Set the username
+      const response = await apiRequest<{ data: any }>("GET_USER" as ApiRoute);
+      console.log("Fetched user data:", response);
+
+      const userData = response.data;
+
+      setUserId(userData.PK);
+      setUsername(userData.nickname);
+      setProfilePicture(userData.user_profile_picture_url || DefaultAvatar);
+      setEmail(userData.email);
+      setPhone(userData.phone);
+      setBirthDate(userData.birthdate);
+      setGender(userData.gender ? "Male" : "Female");
+      setHeight(userData.height.toString());
+      setWeight(userData.weight.toString());
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
   };
-
+  
+  // 📌 Call the fetchUserData when the component loads
   useEffect(() => {
     fetchUserData();
   }, []);
@@ -107,40 +124,24 @@ const Profile: React.FC = () => {
     return true;
   };
 
-  // ✅ Handle Save (this runs when "Confirm" is clicked)
+  // ✅ Handle Save
   const handleSave = () => {
     let isValid = true;
 
-    // ✅ Validate email
-    if (!validateEmail(email)) {
-      isValid = false;
-    }
-
-    // ✅ Validate phone
-    if (!validatePhone(phone)) {
-      isValid = false;
-    }
-
-    // ✅ Validate height
-    if (!validateHeight(height)) {
-      isValid = false;
-    }
-
-    // ✅ Validate weight
-    if (!validateWeight(weight)) {
-      isValid = false;
-    }
+    if (!validateEmail(email || "")) isValid = false;
+    if (!validatePhone(phone || "")) isValid = false;
+    if (!validateHeight(height || "")) isValid = false;
+    if (!validateWeight(weight || "")) isValid = false;
 
     if (isValid) {
       console.log("Saved values:", { email, phone, birthDate, gender, height, weight });
       setIsEditing(false);
-    } else {
-      console.log("Form has errors. Please fix them.");
     }
   };
 
   const handleCancel = () => {
     setIsEditing(false);
+    fetchUserData(); // ✅ Reset to original values
   };
 
   return (
@@ -159,9 +160,9 @@ const Profile: React.FC = () => {
 
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-center text-center md:text-left md:justify-start w-full gap-6 md:gap-10 border-b border-gray-200 pb-6">
-          {/* Profile Image */}
+          {/* Profile Picture */}
           <img
-            src={DefaultAvatar}
+            src={profilePicture || DefaultAvatar}
             alt="Profile"
             className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
           />
@@ -205,7 +206,7 @@ const Profile: React.FC = () => {
 
           {/* User Data Rows */}
           <div className="flex flex-col gap-4 w-full">
-            <DataRow icon={<FaRegIdCard />} label="User ID" value="123456789" isBold />
+            <DataRow icon={<FaRegIdCard />} label="User ID" value={userId || ""} isBold />
             <DataRow
               icon={<FaLock />}
               label="Password"
@@ -216,7 +217,7 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<MdEmail />}
               label="Email"
-              value={email}
+              value={email || ""}
               onChange={setEmail}
               editable={isEditing}
               stacked
@@ -229,7 +230,7 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<AiFillPhone />}
               label="Phone"
-              value={phone}
+              value={phone || ""}
               onChange={setPhone}
               editable={isEditing}
               stacked
@@ -242,16 +243,16 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<BiCalendar />}
               label="Birth Date"
-              value={birthDate}
+              value={birthDate || ""}
               onChange={setBirthDate}
               editable={isEditing}
-              type="date" // 🔥 Date type added here
+              type="date"
               isBold
             />
             <DataRow
               icon={<BiMaleFemale />}
               label="Gender"
-              value={gender}
+              value={gender || ""}
               onChange={setGender}
               editable={isEditing}
               isBold
@@ -260,7 +261,7 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<GiBodyHeight />}
               label="Height"
-              value={height}
+              value={height || ""}
               type="number"
               onChange={setHeight}
               editable={isEditing}
@@ -271,7 +272,7 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<GiWeight />}
               label="Weight"
-              value={weight}
+              value={weight || ""}
               type="number"
               onChange={setWeight}
               editable={isEditing}
