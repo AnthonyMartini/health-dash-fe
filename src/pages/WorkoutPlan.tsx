@@ -21,6 +21,8 @@ interface ExerciseProps {
 
 interface PlanProps {
   workoutcard_title: string;
+  workoutbucket_id: string;
+  workoutcard_favcount: Number;
   workoutcard_id: string;
   username: string; // e.g. "@TheRock"
   favorite?: boolean; // whether to show the heart icon
@@ -29,6 +31,8 @@ interface PlanProps {
 
 const filterPlans = (dataArray: any[]): PlanProps[] => {
   return dataArray.map((data) => ({
+    workoutbucket_id: data.workoutbucket_id ?? "",
+    workoutcard_favcount: data.workoutcard_favcount ?? 0,
     workoutcard_title: data.workoutcard_title ?? "",
     workoutcard_id: data.workoutcard_id ?? "",
     username: data.username ?? "",
@@ -166,6 +170,8 @@ const WorkoutPlan: React.FC = () => {
   // Modal for adding a plan
   const [selectedPlan, setSelectedPlan] = useState<PlanProps>({
     workoutcard_title: "",
+    workoutbucket_id: "",
+    workoutcard_favcount: 0,
     username: "",
     workoutcard_id: "",
     workoutcard_content: { exercises: [] },
@@ -179,6 +185,8 @@ const WorkoutPlan: React.FC = () => {
     setWeeklyPlan(updated);
     setSelectedPlan({
       workoutcard_title: "",
+      workoutbucket_id: "",
+      workoutcard_favcount: 0,
       username: "",
       workoutcard_id: "",
       workoutcard_content: { exercises: [] },
@@ -361,6 +369,8 @@ const WorkoutPlan: React.FC = () => {
                   setSelectedPlan({
                     workoutcard_title: "",
                     username: "",
+                    workoutbucket_id: "",
+                    workoutcard_favcount: 0,
                     workoutcard_id: "",
                     workoutcard_content: { exercises: [] },
                   });
@@ -387,6 +397,9 @@ const WorkoutPlan: React.FC = () => {
                           body: {
                             workoutcard_id: selectedPlan.workoutcard_id,
                             day_of_week: dayMapping[dayData.day],
+                            workoutbucket_id: selectedPlan.workoutbucket_id,
+                            workoutcard_favcount:
+                              selectedPlan.workoutcard_favcount,
                           },
                         });
                       } catch {}
@@ -524,6 +537,8 @@ const WorkoutPlan: React.FC = () => {
                           username: "ME!",
                           workoutcard_id: result.workoutcard_id,
                           workoutcard_title: workoutName,
+                          workoutbucket_id: "",
+                          workoutcard_favcount: 0,
                           workoutcard_content: { exercises: exercises },
                         },
                       ]);
