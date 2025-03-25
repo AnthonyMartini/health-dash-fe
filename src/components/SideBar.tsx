@@ -3,70 +3,60 @@ import { useNavigate } from "react-router-dom";
 import { LuLayoutDashboard } from "react-icons/lu";
 import { CgGym } from "react-icons/cg";
 import { FaCheckSquare, FaRegSquare } from "react-icons/fa";
-import { apiRequest, ApiOptions } from "../utils/APIService";
-import { fetchUserAttributes } from "@aws-amplify/auth";
-
-// Mock Data
-const MOCK_DATA = {
-  username: "001",
-  goal: [
-    { title: "100 pushups", status: true },
-    { title: "10000 steps", status: true },
-    { title: "Log health data 5 days in a row", status: false },
-  ],
-};
-
-const testHealthDataTables = async () => {
-  try {
-    const data = await apiRequest("LIST_TABLE");
-    console.log("Health Data Tables:", data.json());
-  } catch (error) {
-    console.error("Error fetching health data tables:", error);
-  }
-};
+import { apiRequest } from "../utils/APIService";
 
 interface SideBarProps {
   SelectedPage?: string;
 }
 
+interface Goal {
+  title: string;
+  status: boolean;
+}
+
 const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
   const navigate = useNavigate();
 
-  // ✅ Manage goal state to reflect updates
-  const [goals, setGoals] = useState(MOCK_DATA.goal);
+  const [goals, setGoals] = useState<Goal[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  // ✅ Handle checkbox click event
-  const handleToggleGoal = (index: number) => {
-    const updatedGoals = [...goals];
-    updatedGoals[index].status = !updatedGoals[index].status;
-    setGoals(updatedGoals);
-
-    console.log(
-      `Goal "${updatedGoals[index].title}" toggled to:`,
-      updatedGoals[index].status
-    );
-
-    // ✅ Test the API call after toggling
-    testHealthDataTables();
-  };
-
-  /*
   useEffect(() => {
-    //WIP
     async function fetchData() {
-      const hold = await fetchUserAttributes();
+      setLoading(true); // Start loading
       try {
-        const result = await apiRequest("GET_GOALS", {
-          queryParams: { username: hold?.sub, date: "2025-03-06" },
-        });
-        setGoals(result.data);
-      } catch {
-        setGoals(MOCK_DATA.goal);
+        const result = await apiRequest("GET_GOALS");
+        console.log("API Result:", result); // ✅ Check full response structure
+
+        // ✅ Extract the goals correctly from the nested structure
+        if (
+          result &&
+          result.data &&
+          Array.isArray(result.data) &&
+          result.data[0]?.goal
+        ) {
+          setGoals(result.data[0].goal);
+        } else {
+          console.warn("Unexpected data structure:", result);
+          setGoals([]);
+        }
+      } catch (error) {
+        console.error("Error fetching goals:", error);
+        setGoals([]);
+      } finally {
+        setLoading(false); // Stop loading after fetching
       }
     }
     fetchData();
   }, []);
-*/
+
+  const handleToggleGoal = (index: number) => {
+    setGoals((prevGoals) =>
+      prevGoals.map((goal, i) =>
+        i === index ? { ...goal, status: !goal.status } : goal
+      )
+    );
+  };
+
   const buttons = [
     {
       page: "Dashboard",
@@ -112,53 +102,64 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
           </button>
         </div>
 
-        {/* In Progress Goals */}
-        <div className="bg-gray-50/90 bg-opacity-30 rounded-[15px] p-[10px] w-[230px] mb-4">
-          <span className="text-[#FF3B30] text-[16px] font-normal mb-2">
-            In Progress:
-          </span>
-          {goals
-            .filter((goal) => !goal.status)
-            .map((goal, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center mt-2"
-              >
-                <span className="text-[12px] text-black leading-[16px] w-[156px]">
-                  {goal.title}
-                </span>
-                {/* ✅ Add click event to toggle the state */}
-                <FaRegSquare
-                  className="text-[#FF3B30] w-6 h-6 cursor-pointer"
-                  onClick={() => handleToggleGoal(index)}
-                />
-              </div>
-            ))}
-        </div>
+        {loading ? (
+          // ✅ Activity Indicator (spinner)
+          <div className="flex justify-center items-center w-full py-10">
+            <div className="w-8 h-8 border-4 border-gray-300 border-t-[#DF1111] rounded-full animate-spin"></div>
+          </div>
+        ) : goals.length > 0 ? (
+          <>
+            {/* In Progress Goals */}
+            <div className="bg-gray-50/90 bg-opacity-30 rounded-[15px] p-[10px] w-[230px] mb-4">
+              <span className="text-[#FF3B30] text-[16px] font-normal mb-2">
+                In Progress:
+              </span>
+              {goals
+                .filter((goal) => !goal.status)
+                .map((goal, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center mt-2"
+                  >
+                    <span className="text-[12px] text-black leading-[16px] w-[156px]">
+                      {goal.title}
+                    </span>
+                    <FaRegSquare
+                      className="text-[#FF3B30] w-6 h-6 cursor-pointer"
+                      onClick={() => handleToggleGoal(index)}
+                    />
+                  </div>
+                ))}
+            </div>
 
-        {/* Completed Goals */}
-        <div className="bg-gray-50/90 bg-opacity-30 rounded-[15px] p-[10px] w-[230px]">
-          <span className="text-[#34C759] text-[16px] font-normal mb-2">
-            Completed:
-          </span>
-          {goals
-            .filter((goal) => goal.status)
-            .map((goal, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center mt-2"
-              >
-                <span className="text-[12px] text-black leading-[16px] w-[156px]">
-                  {goal.title}
-                </span>
-                {/* ✅ Add click event to toggle the state */}
-                <FaCheckSquare
-                  className="text-[#34C759] w-6 h-6 cursor-pointer"
-                  onClick={() => handleToggleGoal(index)}
-                />
-              </div>
-            ))}
-        </div>
+            {/* Completed Goals */}
+            <div className="bg-gray-50/90 bg-opacity-30 rounded-[15px] p-[10px] w-[230px]">
+              <span className="text-[#34C759] text-[16px] font-normal mb-2">
+                Completed:
+              </span>
+              {goals
+                .filter((goal) => goal.status)
+                .map((goal, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center mt-2"
+                  >
+                    <span className="text-[12px] text-black leading-[16px] w-[156px]">
+                      {goal.title}
+                    </span>
+                    <FaCheckSquare
+                      className="text-[#34C759] w-6 h-6 cursor-pointer"
+                      onClick={() => handleToggleGoal(index)}
+                    />
+                  </div>
+                ))}
+            </div>
+          </>
+        ) : (
+          <div className="text-gray-400 text-[14px] mt-4">
+            No goals found.
+          </div>
+        )}
       </div>
     </div>
   );
