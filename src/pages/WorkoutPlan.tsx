@@ -4,10 +4,6 @@ import { FaFireAlt } from "react-icons/fa";
 import { BsSuitHeartFill } from "react-icons/bs";
 import { apiRequest } from "../utils/APIService";
 import { CiTrash } from "react-icons/ci";
-import {
-  fetchUserAttributes,
-  FetchUserAttributesOutput,
-} from "aws-amplify/auth";
 
 /* ------------- DATA TYPES & MOCK ARRAYS ------------- */
 
@@ -109,8 +105,7 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
       {plan.workoutcard_content.exercises.map((item, idx) => (
         <div
           key={idx}
-          className="rounded-lg px-2 py-1 text-sm font-semibold w-full h-[30px] flex"
-          style={{ backgroundColor: "#42b0f5" }}
+          className="rounded-lg px-2 py-1 text-sm font-semibold w-full h-[30px] flex bg-[#42b0f5]"
         >
           <span className="flex-1 ">{item.title}</span>
 
@@ -416,7 +411,7 @@ const WorkoutPlan: React.FC = () => {
         </div>
       )}
       {createWorkout && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-20">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[400px] h-[700px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button

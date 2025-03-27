@@ -36,4 +36,5 @@ export type DashboardDataProps = {
   day_macros: MacroProps;
   day_water: number;
   day_sleep: number;
+  day_weight: number;
 };

@@ -7,9 +7,10 @@ import { FaBowlFood } from "react-icons/fa6";
 import { RiDrinks2Fill } from "react-icons/ri";
 import { CiEdit } from "react-icons/ci";
 import SideBar from "../components/SideBar";
+import { CiTrash } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
 
-import { apiRequest } from "../utils/APIService";
+import { apiRequest, ApiRoute } from "../utils/APIService";
 
 import { FoodItemProps, WorkoutPlanProps, DashboardDataProps } from "../utils";
 import {
@@ -36,6 +37,7 @@ const filterData = (data: any): DashboardDataProps => {
     },
     day_water: data.day_water ?? 0,
     day_sleep: data.day_sleep ?? 0,
+    day_weight: data.day_weight ?? 0,
   };
 };
 
@@ -208,7 +210,20 @@ const Dashboard: React.FC<DashboardProps> = () => {
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
               <ContentCard
                 title="Weight"
-                content={<div>Amazon Quicksight visual to be implemented</div>}
+                content={
+                  <div>
+                    <h2>Amazon Quicksight visual to be implemented</h2>
+                    <div className="w-full h-[200px] flex justify-center items-end ">
+                      <button
+                        title="log weight"
+                        className="bg-red-400 p-2 rounded-2xl h-[40px] cursor-pointer "
+                        onClick={() => setLogMetric("Weight")}
+                      >
+                        Log Weight
+                      </button>
+                    </div>
+                  </div>
+                }
               />
               <ContentCard
                 title="Macros"
@@ -249,6 +264,31 @@ const Dashboard: React.FC<DashboardProps> = () => {
                         <span className="font-bold ">
                           {item.calories} kCal{" "}
                         </span>
+                        <CiTrash
+                          size={20}
+                          color="red"
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setData((prev) => {
+                              const updatedData: DashboardDataProps = {
+                                ...prev,
+
+                                day_food: prev.day_food.filter(
+                                  (rem, idx) =>
+                                    idx !==
+                                    prev.day_food.findIndex(
+                                      (rem) => rem.title === item.title
+                                    )
+                                ),
+                              };
+
+                              // Call API immediately after updating state
+                              updateDB(updatedData);
+
+                              return updatedData; // Ensure the new state is returned
+                            });
+                          }}
+                        />
                       </div>
                     ))}
                   </div>
@@ -311,7 +351,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
         </div>
       </div>
       {logMetric != "" && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[200px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button
@@ -350,6 +390,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
                         logMetric === "Steps" ? logMetricValue : prev.day_steps,
                       day_water:
                         logMetric === "Water" ? logMetricValue : prev.day_water,
+                      day_weight:
+                        logMetric === "Weight"
+                          ? logMetricValue
+                          : prev.day_weight,
                     };
 
                     // Call API immediately after updating state
@@ -368,7 +412,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
         </div>
       )}
       {logConsumption && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[270px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button
@@ -522,7 +566,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       )}
 
       {logPlan && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[200px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button
