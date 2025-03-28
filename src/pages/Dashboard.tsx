@@ -101,25 +101,40 @@ const ContentCard: React.FC<ContentCardProps> = ({
   action,
 }) => {
   return (
-    <div onClick={action} className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col
-        hover:shadow-md hover:scale-[1.01] transition-all duration-200 cursor-pointer">
-      <div className="flex items-center justify-between">
+    <div
+      className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col
+        hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+    >
+      <div
+        className="flex items-center justify-between cursor-pointer"
+        onClick={action}
+      >
         <span className="text-[#5C6670] text-[16px] sm:text-lg font-semibold">
           {title}
         </span>
         {actionText && (
           <span
-            className="text-red-500 text-[13px] sm:text-md  hover:underline hover:cursor-pointer"
-            onClick={action}
+            className="text-red-500 text-[13px] sm:text-md hover:underline"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent triggering parent click
+              action?.();
+            }}
           >
             {actionText}
           </span>
         )}
       </div>
-      <div className="w-full flex-1  rounded-lg">{content}</div>
+
+      <div
+        className="w-full flex-1 rounded-lg"
+        onClick={(e) => e.stopPropagation()} // Prevent bubbling from inner content
+      >
+        {content}
+      </div>
     </div>
   );
 };
+
 
 const Dashboard: React.FC<DashboardProps> = () => {
   const [logMetric, setLogMetric] = useState("");
