@@ -24,6 +24,8 @@ const Profile: React.FC = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [phone, setPhone] = useState<string | null>(null);
   const [birthDate, setBirthDate] = useState<string | null>(null);
@@ -50,6 +52,8 @@ const Profile: React.FC = () => {
 
       setUserId(userData.PK);
       setUsername(userData.nickname);
+      setFirstName(userData.first_name);
+      setLastName(userData.last_name);
       setProfilePicture(userData.user_profile_picture_url || DefaultAvatar);
       setEmail(userData.email);
       setPhone(userData.phone);
@@ -145,14 +149,16 @@ const Profile: React.FC = () => {
           birthdate: birthDate || "",
           gender: gender === "Male" ? true : false,
           height: height ? parseFloat(height) : 0,
-          first_name: "John",
-          last_name: "Doe",
+          first_name: firstName || "",
+          last_name: lastName || "",
         };
   
         console.log("Request Body:", updatedUserData);
   
         // ✅ Update state first, then call API
         setUsername(updatedUserData.nickname);
+        setFirstName(updatedUserData.first_name);
+        setLastName(updatedUserData.last_name);
         setProfilePicture(updatedUserData.user_profile_picture_url);
         setEmail(updatedUserData.email);
         setPhone(updatedUserData.phone);
@@ -208,16 +214,39 @@ const Profile: React.FC = () => {
           {/* User Name */}
           <div className="flex flex-col items-center md:items-start">
             {!isEditing ? (
-              <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
-                {username || "Loading..."}
-              </h2>
+              <>
+                <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
+                  {username || "Loading..."}
+                </h2>
+                <p className="text-md md:text-lg text-gray-600">
+                  {firstName} {lastName}
+                </p>
+              </>
             ) : (
-              <input
-                type="text"
-                value={username || ""}
-                onChange={(e) => setUsername(e.target.value)}
-                className="text-2xl md:text-3xl font-semibold text-gray-900 border-b border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent"
-              />
+              <>
+                <input
+                  type="text"
+                  value={username || ""}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="text-2xl md:text-3xl font-semibold text-gray-900 border-b border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent"
+                />
+                <div className="flex flex-col md:flex-row gap-2 text-md md:text-lg text-gray-600 mt-2">
+                  <input
+                    type="text"
+                    value={firstName || ""}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="border-b border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent"
+                    placeholder="First Name"
+                  />
+                  <input
+                    type="text"
+                    value={lastName || ""}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="border-b border-gray-400 focus:outline-none focus:border-blue-500 bg-transparent"
+                    placeholder="Last Name"
+                  />
+                </div>
+              </>
             )}
           </div>
         </div>
