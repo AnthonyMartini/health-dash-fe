@@ -134,25 +134,28 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
   ];
 
   return (
-    <div className="bg-white md:h-full flex-shrink-0 md:w-auto min-w-[150px] max-w-[300px] w-full flex md:flex-col items-center gap-[10px] py-[20px] px-5 justify-center md:justify-start">
+    <div className="bg-white md:h-full flex-shrink-0 md:w-auto min-w-[150px] md:max-w-[300px] w-full flex flex-wrap md:flex-col items-center gap-[5px] py-[20px] px-5 justify-center md:justify-start">
       {/* Navigation Buttons */}
-      {buttons.map((item, index) => (
-        <button
-          key={`item-${index}`}
-          className={`${
-            item.page === SelectedPage
-              ? "bg-[#FCE9E9] hover:bg-[#FCE9E9] text-[#DF1111]"
-              : "bg-[#FFFFFF] hover:bg-[#FCE9E9] text-[#DF1111]"
-          } sm:w-[230px] w-[150px] h-[44px] rounded-[10px] flex gap-[10px] items-center p-2 cursor-pointer`}
-          onClick={() => navigate(item.path)}
-        >
-          {item.icon}
-          {item.page}
-        </button>
-      ))}
+      <div className="w-full flex gap-4 md:flex-col justify-center">
+        {buttons.map((item, index) => (
+          <button
+            key={`item-${index}`}
+            className={`${
+              item.page === SelectedPage
+                ? "bg-[#FCE9E9] hover:bg-[#FCE9E9] text-[#DF1111]"
+                : "bg-[#FFFFFF] hover:bg-[#FCE9E9] text-[#DF1111]"
+            } sm:w-[230px] w-[150px] h-[44px] rounded-[10px] flex gap-[10px] items-center p-2 cursor-pointer`}
+            onClick={() => navigate(item.path)}
+          >
+            {item.icon}
+            {item.page}
+          </button>
+        ))}
+      </div>
 
       {/* Goals Section */}
-      <div className="flex flex-col items-center w-full mt-6">
+
+      <div className=" flex-col items-center w-full mt-6 md:flex hidden">
         {/* Header */}
         <div className="flex justify-between items-center w-[230px] mb-4">
           <span className="text-[#DF1111] font-semibold text-[16px]">
@@ -188,7 +191,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
             <div className="w-8 h-8 border-4 border-gray-300 border-t-[#DF1111] rounded-full animate-spin"></div>
           </div>
         ) : goals.length > 0 ? (
-          <>
+          <div className=" ">
             {/* In Progress Goals */}
             <div className="bg-gray-50/90 bg-opacity-30 rounded-[15px] p-[10px] w-[230px] mb-4">
               <span className="text-[#FF3B30] text-[16px] font-normal mb-2">
@@ -242,7 +245,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
                   </div>
                 ))}
             </div>
-          </>
+          </div>
         ) : (
           <div className="text-gray-400 text-[14px] mt-4">No goals found.</div>
         )}
