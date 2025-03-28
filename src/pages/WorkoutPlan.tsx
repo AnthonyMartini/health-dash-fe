@@ -208,20 +208,21 @@ const WorkoutPlan: React.FC = () => {
           queryParams: { action: "user" },
         });
         setFavoritePlans(filterPlans(true, result.data));
+      } catch {}
+      try {
+        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
+          queryParams: {},
+        });
 
+        setWeeklyPlan(filterWeekly(result2.data));
+      } catch {}
+      try {
         const result2 = await apiRequest("GET_WORKOUT_CARD", {
           queryParams: { action: "discover" },
         });
         setDiscoverPlans(filterPlans(false, result2.data.discover));
         setPopularPlans(filterPlans(false, result2.data.popular));
-
-        setWeeklyPlan(filterWeekly(result2.data));
-      } catch {
-        //blank data
-        //setFavoritePlans(filterPlans([]));
-        //setDiscoverPlans(filterPlans([]));
-        //setPopularPlans(filterPlans([]));
-      }
+      } catch {}
     }
 
     fetchData();
