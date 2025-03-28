@@ -6,31 +6,24 @@ import { useNavigate } from "react-router-dom";
 /* ------------- DATA TYPES & MOCK ARRAYS ------------- */
 
 /* ------------- MAIN PAGE ------------- */
-interface userDetailsProps {
-  username: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  height: number;
-  weight: number;
-}
 
 const NewUserPage: React.FC = () => {
   const navigate = useNavigate();
-  const [userDetails, setUserDetails] = useState<userDetailsProps>({
+  const [userDetails, setUserDetails] = useState({
     username: "",
     first_name: "",
     last_name: "",
     email: "",
-    height: 0,
-    weight: 0,
+    phone: "",
+    birthdate: "",
+    gender: true,
+    height: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserDetails({
       ...userDetails,
-      [e.target.name]:
-        e.target.name === "height" ? Number(e.target.value) : e.target.value,
+      [e.target.name]: e.target.value,
     });
   };
   return (
@@ -76,6 +69,15 @@ const NewUserPage: React.FC = () => {
           onChange={handleChange}
           className="block w-full p-2 mb-2 border rounded"
         />
+        <label className="block mb-1 font-bold">Phone #</label>
+        <input
+          type="text"
+          name="phone"
+          placeholder="+###########"
+          value={userDetails.phone}
+          onChange={handleChange}
+          className="block w-full p-2 mb-2 border rounded"
+        />
         <label className="block mb-1 font-bold">Height (cm)</label>
         <input
           type="number"
@@ -85,16 +87,41 @@ const NewUserPage: React.FC = () => {
           onChange={handleChange}
           className="block w-full p-2 mb-2 border rounded"
         />
-        <label className="block mb-1 font-bold">Weight (kg)</label>
+        <label className="block mb-1 font-bold">Birthdate</label>
         <input
-          type="number"
-          name="weight"
-          placeholder="Weight (kg)"
-          value={userDetails.weight}
-          onChange={handleChange}
-          className="block w-full p-2 mb-2 border rounded"
+          type="date"
+          title="date"
+          name="date"
+          value={userDetails.birthdate}
+          onChange={(e) =>
+            setUserDetails({
+              ...userDetails,
+              birthdate: e.target.value,
+            })
+          }
+          className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
         />
-        <div className="flex justify-center w-full">
+        <label className="block mb-1 font-bold">Gender</label>
+        <select
+          title="gender"
+          value={userDetails.gender ? "Male" : "Female"}
+          onChange={(e) =>
+            setUserDetails({
+              ...userDetails,
+              gender: e.target.value === "Male",
+            })
+          }
+          className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+        >
+          <option key={"Male"} value={"Male"}>
+            Male
+          </option>
+          <option key={"Female"} value={"Female"}>
+            Female
+          </option>
+        </select>
+
+        <div className="flex justify-center w-full cursor-pointer">
           <button
             onClick={() => {
               async function sendData() {
@@ -104,6 +131,9 @@ const NewUserPage: React.FC = () => {
                     first_name: userDetails.first_name,
                     last_name: userDetails.last_name,
                     email: userDetails.email,
+                    phone: userDetails.phone,
+                    birthdate: userDetails.birthdate,
+                    gender: userDetails.gender,
                     height: Number(userDetails.height),
                   },
                 });
@@ -111,7 +141,28 @@ const NewUserPage: React.FC = () => {
               sendData();
               navigate("/");
             }}
-            className="px-4 py-2 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600 transition"
+            disabled={
+              userDetails.username === "" ||
+              userDetails.first_name === "" ||
+              userDetails.last_name === "" ||
+              userDetails.email === "" ||
+              userDetails.phone === "" ||
+              userDetails.height === "" ||
+              userDetails.birthdate === ""
+            }
+            className={`px-4 py-2 text-white rounded-full shadow-md transition ${
+              !(
+                userDetails.username === "" ||
+                userDetails.first_name === "" ||
+                userDetails.last_name === "" ||
+                userDetails.email === "" ||
+                userDetails.phone === "" ||
+                userDetails.height === "" ||
+                userDetails.birthdate === ""
+              )
+                ? "bg-blue-500 hover:bg-blue-600"
+                : "bg-gray-400 cursor-not-allowed"
+            }`}
           >
             Complete
           </button>

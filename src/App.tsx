@@ -3,7 +3,7 @@ import Layout from "./Layout";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import WorkoutPlan from "./pages/WorkoutPlan";
-import ProtectedRoute from "./ProtectedRoute";
+import ProtectedRoute, { Redirect } from "./ProtectedRoute";
 import NewUserPage from "./pages/NewUser";
 //import { fetchAuthSession } from "aws-amplify/auth";
 
@@ -41,9 +41,9 @@ const App: React.FC = () => {
           <Route
             path="/new-user"
             element={
-              <ProtectedRoute>
+              <Redirect>
                 <NewUserPage />
-              </ProtectedRoute>
+              </Redirect>
             }
           />
           <Route

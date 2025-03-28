@@ -23,9 +23,10 @@ interface PlanProps {
   username: string; // e.g. "@TheRock"
   favorite?: boolean; // whether to show the heart icon
   workoutcard_content: { exercises: ExerciseProps[] };
+  trash: boolean;
 }
 
-const filterPlans = (dataArray: any[]): PlanProps[] => {
+const filterPlans = (edit: boolean, dataArray: any[]): PlanProps[] => {
   return dataArray.map((data) => ({
     workoutbucket_id: data.workoutbucket_id ?? "",
     workoutcard_favcount: data.workoutcard_favcount ?? 0,
@@ -33,6 +34,7 @@ const filterPlans = (dataArray: any[]): PlanProps[] => {
     workoutcard_id: data.workoutcard_id ?? "",
     username: data.username ?? "",
     favorite: true,
+    trash: edit,
     workoutcard_content: {
       exercises: Array.isArray(data.workoutcard_content?.exercises)
         ? data.workoutcard_content.exercises
@@ -120,14 +122,16 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
     <div className="flex justify-between items-center">
       <div className="flex items-center gap-1 text-sm text-black">
         <div className="stroke-amber-700">
-          <CiTrash
-            size={20}
-            color="red"
-            className="cursor-pointer"
-            onClick={() => {
-              setConfirmDelete(plan.workoutcard_id);
-            }}
-          />
+          {plan.trash && (
+            <CiTrash
+              size={20}
+              color="red"
+              className="cursor-pointer"
+              onClick={() => {
+                setConfirmDelete(plan.workoutcard_id);
+              }}
+            />
+          )}
         </div>
         <FaFireAlt />
         <span>{120} cal</span>
@@ -148,7 +152,13 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
 const WorkoutPlan: React.FC = () => {
   //User Data
   const [FavoritePlans, setFavoritePlans] = useState<PlanProps[]>(
-    filterPlans([])
+    filterPlans(true, [])
+  );
+  const [discoverPlans, setDiscoverPlans] = useState<PlanProps[]>(
+    filterPlans(false, [])
+  );
+  const [popularPlans, setPopularPlans] = useState<PlanProps[]>(
+    filterPlans(false, [])
   );
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan[]>(filterWeekly([]));
 
@@ -169,6 +179,7 @@ const WorkoutPlan: React.FC = () => {
     workoutcard_favcount: 0,
     username: "",
     workoutcard_id: "",
+    trash: false,
     workoutcard_content: { exercises: [] },
   });
 
@@ -183,6 +194,7 @@ const WorkoutPlan: React.FC = () => {
       workoutbucket_id: "",
       workoutcard_favcount: 0,
       username: "",
+      trash: false,
       workoutcard_id: "",
       workoutcard_content: { exercises: [] },
     });
@@ -195,16 +207,20 @@ const WorkoutPlan: React.FC = () => {
         const result = await apiRequest("GET_WORKOUT_CARD", {
           queryParams: { action: "user" },
         });
-        setFavoritePlans(filterPlans(result.data));
+        setFavoritePlans(filterPlans(true, result.data));
 
-        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
-          queryParams: {},
+        const result2 = await apiRequest("GET_WORKOUT_CARD", {
+          queryParams: { action: "discover" },
         });
-        console.log("Weekly", result2.data);
+        setDiscoverPlans(filterPlans(false, result2.data.discover));
+        setPopularPlans(filterPlans(false, result2.data.popular));
+
         setWeeklyPlan(filterWeekly(result2.data));
       } catch {
         //blank data
-        setFavoritePlans(filterPlans([]));
+        //setFavoritePlans(filterPlans([]));
+        //setDiscoverPlans(filterPlans([]));
+        //setPopularPlans(filterPlans([]));
       }
     }
 
@@ -252,7 +268,7 @@ const WorkoutPlan: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold">Popular Plans</h2>
           </div>
           <div className="flex flex-wrap gap-4">
-            {FavoritePlans.slice(0, 1).map((plan, idx) => (
+            {popularPlans.slice(0, 5).map((plan, idx) => (
               <SmallPlanCard
                 key={idx}
                 plan={plan}
@@ -269,7 +285,7 @@ const WorkoutPlan: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold">Discover Plans</h2>
           </div>
           <div className="flex flex-wrap gap-4">
-            {FavoritePlans.slice(0, 1).map((plan, idx) => (
+            {discoverPlans.map((plan, idx) => (
               <SmallPlanCard
                 key={idx}
                 plan={plan}
@@ -311,9 +327,10 @@ const WorkoutPlan: React.FC = () => {
                     {wDay.plans.map((pName, idx) => (
                       <div
                         key={idx}
-                        className="bg-red-100 text-red-500 text-xs rounded px-2 py-1 text-center font-semibold flex justify-between"
+                        className={`bg-red-100 text-red-500 text-xs rounded px-2 py-1 text-center font-semibold flex justify-between`}
                       >
                         <span>{pName.workoutcard_title}</span>
+
                         <CiTrash
                           size={16}
                           className="cursor-pointer"
@@ -367,6 +384,7 @@ const WorkoutPlan: React.FC = () => {
                     workoutbucket_id: "",
                     workoutcard_favcount: 0,
                     workoutcard_id: "",
+                    trash: false,
                     workoutcard_content: { exercises: [] },
                   });
                 }}
@@ -533,6 +551,7 @@ const WorkoutPlan: React.FC = () => {
                           workoutcard_id: result.workoutcard_id,
                           workoutcard_title: workoutName,
                           workoutbucket_id: "",
+                          trash: false,
                           workoutcard_favcount: 0,
                           workoutcard_content: { exercises: exercises },
                         },
