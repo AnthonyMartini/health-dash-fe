@@ -194,7 +194,7 @@ const Profile: React.FC = () => {
         {/* Back Button */}
         <button
           title="Back"
-          onClick={() => navigate("/dashboard")}
+          onClick={() => navigate(-1)}
           className="mb-6 flex items-center gap-2 text-gray-700 hover:text-gray-900 text-base sm:text-lg md:text-xl font-medium transition"
         >
           <FaArrowLeft className="text-lg sm:text-xl md:text-2xl" />
