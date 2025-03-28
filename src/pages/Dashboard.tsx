@@ -135,7 +135,6 @@ const ContentCard: React.FC<ContentCardProps> = ({
   );
 };
 
-
 const Dashboard: React.FC<DashboardProps> = () => {
   const [logMetric, setLogMetric] = useState("");
   const [logMetricValue, setLogMetricValue] = useState(0.0);
@@ -155,11 +154,11 @@ const Dashboard: React.FC<DashboardProps> = () => {
     async function fetchData() {
       const hold = await fetchUserAttributes();
       setUserDetails(hold);
-  
+
       const today = new Date().toLocaleDateString("en-CA", {
         timeZone: "America/New_York",
-      });      
-  
+      });
+
       try {
         const result = await apiRequest("GET_HEALTH_DATA", {
           queryParams: { date: today },
@@ -169,15 +168,15 @@ const Dashboard: React.FC<DashboardProps> = () => {
         setData(filterData({}));
       }
     }
-  
+
     fetchData();
   }, []);
-  
+
   async function updateDB(update: DashboardDataProps) {
     const today = new Date().toLocaleDateString("en-CA", {
       timeZone: "America/New_York",
     });
-  
+
     // Destructure and omit the diff fields
     const {
       day_calories_diff,
@@ -186,7 +185,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       day_water_diff,
       ...cleanUpdate
     } = update;
-  
+
     await apiRequest("UPDATE_HEALTH_DATA", {
       queryParams: {
         date: today,
@@ -194,8 +193,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
       body: cleanUpdate,
     });
   }
-  
-  
 
   const Consumption: FoodItemProps[] | undefined = data?.day_food;
   const Workouts: WorkoutPlanProps[] | undefined = data?.day_workout_plan;
@@ -509,7 +506,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           ...prev,
                           macros: {
                             carb: Number(e.target.value),
-                            protein: prev.macros.carb,
+                            protein: prev.macros.protein,
                             fat: prev.macros.fat,
                           },
                         };
@@ -533,7 +530,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           macros: {
                             fat: Number(e.target.value),
                             carb: prev.macros.carb,
-                            protein: prev.macros.fat,
+                            protein: prev.macros.protein,
                           },
                         };
                         return updatedData;
