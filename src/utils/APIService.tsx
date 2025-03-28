@@ -100,13 +100,14 @@ export const apiRequest = async <T = any,>(
 
     return response.data;
   } catch (error: any) {
-    console.error(`API Request failed: ${error.message}`, error);
+    console.error(
+      `API Request failed: ${error.message}`,
+      error.response.status
+    );
 
     // Throw meaningful errors
     if (error.response) {
-      throw new Error(
-        `API Error: ${error.response.data?.message || error.message}`
-      );
+      throw new Error(error.response.status);
     } else if (error.request) {
       throw new Error("API Error: No response received from server");
     } else {

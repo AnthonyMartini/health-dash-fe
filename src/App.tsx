@@ -3,6 +3,8 @@ import Layout from "./Layout";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import WorkoutPlan from "./pages/WorkoutPlan";
+import ProtectedRoute from "./ProtectedRoute";
+import NewUserPage from "./pages/NewUser";
 //import { fetchAuthSession } from "aws-amplify/auth";
 
 const App: React.FC = () => {
@@ -12,10 +14,46 @@ const App: React.FC = () => {
         {/* Routes with Sidebar */}
         <Route path="/" element={<Layout />}>
           <Route index element={<Dashboard />} />
-          <Route path="profile" element={<Profile />}></Route>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="workout-plan" element={<WorkoutPlan />} />
-          <Route path="*" element={<Dashboard />} />
+          <Route
+            path="profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          ></Route>
+          <Route
+            path="dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="workout-plan"
+            element={
+              <ProtectedRoute>
+                <WorkoutPlan />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/new-user"
+            element={
+              <ProtectedRoute>
+                <NewUserPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="*"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
         </Route>
       </Routes>
     </Router>
