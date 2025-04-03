@@ -23,6 +23,7 @@ const Profile: React.FC = () => {
   // ✅ State for user data
   const [userId, setUserId] = useState<string | null>(null);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [newProfileImage, setNewProfileImage] = useState<File | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
@@ -128,6 +129,16 @@ const Profile: React.FC = () => {
     return "N/A";
   };
 
+  // Replace this with actual image upload logic (e.g. S3, backend)
+  const uploadImageToServer = async (file: File): Promise<string> => {
+    // Simulate delay and return dummy URL for now
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(URL.createObjectURL(file)); // 👈 local preview URL — replace with your backend URL
+      }, 1000);
+    });
+  };
+
   // ✅ Handle Save
   const handleSave = async () => {
     let isValid = true;
@@ -140,10 +151,19 @@ const Profile: React.FC = () => {
       try {
         console.log("Updating user data...");
   
-        // ✅ Build request body (only updatable fields)
+        let uploadedImageUrl = profilePicture; // fallback to existing
+  
+        // ✅ If a new profile image is selected, upload it
+        if (newProfileImage) {
+          console.log("Uploading new profile image...");
+          uploadedImageUrl = await uploadImageToServer(newProfileImage); // replace with your own logic
+          console.log("Uploaded Image URL:", uploadedImageUrl);
+        }
+  
+        // ✅ Build request body
         const updatedUserData = {
           nickname: username || "",
-          user_profile_picture_url: profilePicture || "",
+          user_profile_picture_url: uploadedImageUrl || "",
           email: email || "",
           phone: phone || "",
           birthdate: birthDate || "",
@@ -155,7 +175,7 @@ const Profile: React.FC = () => {
   
         console.log("Request Body:", updatedUserData);
   
-        // ✅ Update state first, then call API
+        // ✅ Update state
         setUsername(updatedUserData.nickname);
         setFirstName(updatedUserData.first_name);
         setLastName(updatedUserData.last_name);
@@ -165,10 +185,9 @@ const Profile: React.FC = () => {
         setBirthDate(updatedUserData.birthdate);
         setGender(updatedUserData.gender ? "Male" : "Female");
         setHeight(updatedUserData.height.toString());
-
-        console.log("Updated User Data:", updatedUserData);
-
-        // ✅ Immediately call API to persist changes
+        setNewProfileImage(null); // Clear temp image
+  
+        // ✅ API call
         await apiRequest("UPDATE_USER" as ApiRoute, {
           body: updatedUserData,
         });
@@ -180,7 +199,7 @@ const Profile: React.FC = () => {
         alert(`Failed to update profile: ${error}`);
       }
     }
-  };
+  };  
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -203,13 +222,39 @@ const Profile: React.FC = () => {
 
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-center text-center md:text-left md:justify-start w-full gap-6 md:gap-10 border-b border-gray-200 pb-6">
-          {/* Profile Picture */}
+        {/* Profile Picture */}
+        {isEditing ? (
+          <label htmlFor="profile-upload" className="cursor-pointer relative group">
+            <img
+              src={
+                newProfileImage
+                  ? URL.createObjectURL(newProfileImage)
+                  : profilePicture || DefaultAvatar
+              }
+              alt="Profile"
+              className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-2 border-gray-300 group-hover:border-blue-500 transition"
+            />
+            <input
+              type="file"
+              id="profile-upload"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setNewProfileImage(file);
+              }}
+              className="hidden"
+            />
+            <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
+              Change
+            </span>
+          </label>
+        ) : (
           <img
-            // profilePicture || 
-            src={DefaultAvatar}
+            src={profilePicture || DefaultAvatar}
             alt="Profile"
             className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
           />
+        )}
 
           {/* User Name */}
           <div className="flex flex-col items-center md:items-start">
