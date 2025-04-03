@@ -13,10 +13,6 @@ import { apiRequest, ApiRoute } from "../utils/APIService";
 const Profile: React.FC = () => {
   const navigate = useNavigate();
 
-  // State for toggles
-  const [emailToggle, setEmailToggle] = useState(true);
-  const [phoneToggle, setPhoneToggle] = useState(false);
-
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
 
@@ -341,10 +337,7 @@ const Profile: React.FC = () => {
               value={email || ""}
               onChange={setEmail}
               editable={isEditing}
-              stacked
               isBold
-              toggle={emailToggle}
-              onToggle={() => setEmailToggle(!emailToggle)}
               type="email"
             />
             {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
@@ -354,10 +347,7 @@ const Profile: React.FC = () => {
               value={phone || ""}
               onChange={setPhone}
               editable={isEditing}
-              stacked
               isBold
-              toggle={phoneToggle}
-              onToggle={() => setPhoneToggle(!phoneToggle)}
               type="text"
             />
             {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
@@ -504,8 +494,6 @@ const DataRow: React.FC<{
   stacked?: boolean;
   isBold?: boolean;
   noBoldValue?: boolean;
-  toggle?: boolean;
-  onToggle?: () => void;
   onReset?: () => void;
   onDelete?: () => void;
   editable?: boolean;
@@ -522,8 +510,6 @@ const DataRow: React.FC<{
   stacked = false,
   isBold = false,
   noBoldValue = false,
-  toggle,
-  onToggle,
   editable = false,
   onChange,
   unit,
@@ -564,48 +550,6 @@ const DataRow: React.FC<{
             >
               {label}
             </span>
-
-            {/* ✅ Show value underneath the label for stacked types (Email and Phone) */}
-            {!isDelete && stacked && (
-              editable ? (
-                options ? (
-                  // ✅ Dropdown for options (like Gender)
-                  <select
-                    value={value}
-                    onChange={(e) => onChange?.(e.target.value)}
-                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                  >
-                    {options.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                ) : type === "date" ? (
-                  <input
-                    type="date"
-                    value={value}
-                    onChange={(e) => onChange?.(e.target.value)}
-                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                  />
-                ) : (
-                  <input
-                    type={type}
-                    value={value}
-                    onChange={(e) => onChange?.(e.target.value)}
-                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                  />
-                )
-              ) : (
-                <span
-                  className={`text-gray-800 text-base ${
-                    isBold && !noBoldValue ? "font-semibold" : ""
-                  }`}
-                >
-                  {value}
-                </span>
-              )
-            )}
           </div>
         </div>
 
@@ -668,23 +612,6 @@ const DataRow: React.FC<{
               onClick={handleDeleteAccount}
             >
               Delete
-            </button>
-          )}
-
-          {/* ✅ Toggle Button */}
-          {onToggle && (
-            <button
-              title="Toggle"
-              onClick={onToggle}
-              className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
-                toggle ? "bg-[#34C759]" : "bg-[#FF3B30]"
-              }`}
-            >
-              <div
-                className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                  toggle ? "translate-x-6" : ""
-                }`}
-              ></div>
             </button>
           )}
         </div>
