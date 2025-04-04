@@ -99,7 +99,7 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
         )}
       </div>
 
-      {plan.favorite && <BsSuitHeartFill className="text-red-500" />}
+      {plan.trash && <BsSuitHeartFill className="text-red-500" />}
     </div>
 
     {/* Items (chips) */}
@@ -552,7 +552,7 @@ const WorkoutPlan: React.FC = () => {
                           workoutcard_id: result.workoutcard_id,
                           workoutcard_title: workoutName,
                           workoutbucket_id: "",
-                          trash: false,
+                          trash: true,
                           workoutcard_favcount: 0,
                           workoutcard_content: { exercises: exercises },
                         },
@@ -574,7 +574,7 @@ const WorkoutPlan: React.FC = () => {
         </div>
       )}
       {confirmDelete != "" && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[150px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button

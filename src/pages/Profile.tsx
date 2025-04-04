@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaArrowLeft, FaRegIdCard, FaLock, FaPencilAlt, FaCheck, FaTimes } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaRegIdCard,
+  FaLock,
+  FaPencilAlt,
+  FaCheck,
+  FaTimes,
+} from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { AiFillPhone } from "react-icons/ai";
 import { BiCalendar, BiMaleFemale } from "react-icons/bi";
@@ -51,7 +58,9 @@ const Profile: React.FC = () => {
       setUsername(userData.nickname);
       setFirstName(userData.first_name);
       setLastName(userData.last_name);
-      setProfilePicture(userData.user_profile_picture_url || DefaultAvatar);
+      setProfilePicture(
+        userData.user_profile_picture_url || "https://www.google.com"
+      );
       setEmail(userData.email);
       setPhone(userData.phone);
       setBirthDate(userData.birthdate);
@@ -62,7 +71,7 @@ const Profile: React.FC = () => {
       console.error("Failed to fetch user data:", error);
     }
   };
-  
+
   // 📌 Call the fetchUserData when the component loads
   useEffect(() => {
     fetchUserData();
@@ -70,7 +79,8 @@ const Profile: React.FC = () => {
 
   // ✅ Email validation function
   const validateEmail = (value: string) => {
-    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|co|io|info|biz|me)$/;
+    const emailPattern =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|co|io|info|biz|me)$/;
     if (!emailPattern.test(value)) {
       setEmailError("Invalid email format.");
       return false;
@@ -82,14 +92,18 @@ const Profile: React.FC = () => {
   // ✅ Phone validation and formatting function
   const validatePhone = (value: string) => {
     // ✅ Allow formats like: 1234567890, 123-456-7890, 123.456.7890, +1 (123) 456-7890
-    const phonePattern = /^\+?1?\s?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
+    const phonePattern =
+      /^\+?1?\s?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}$/;
 
     // ✅ Remove non-numeric characters except the leading '+'
     const cleanedValue = value.replace(/[^\d+]/g, "");
 
     if (cleanedValue.length === 10) {
       // ✅ Format into +1 (XXX) XXX-XXXX if it's exactly 10 digits
-      const formattedPhone = `+1 (${cleanedValue.slice(0, 3)}) ${cleanedValue.slice(3, 6)}-${cleanedValue.slice(6)}`;
+      const formattedPhone = `+1 (${cleanedValue.slice(
+        0,
+        3
+      )}) ${cleanedValue.slice(3, 6)}-${cleanedValue.slice(6)}`;
       setPhone(formattedPhone);
       setPhoneError(null);
       return true;
@@ -107,7 +121,9 @@ const Profile: React.FC = () => {
   // ✅ Height validation function
   const validateHeight = (value: string) => {
     if (!/^\d*\.?\d{0,1}$/.test(value) || value === "") {
-      setHeightError("Invalid height format. Numeric input to one decimal place allowed.");
+      setHeightError(
+        "Invalid height format. Numeric input to one decimal place allowed."
+      );
       return false;
     }
     setHeightError(null);
@@ -119,7 +135,9 @@ const Profile: React.FC = () => {
     if (height && weight) {
       const heightInMeters = parseFloat(height) / 100;
       if (heightInMeters > 0) {
-        return (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(1);
+        return (parseFloat(weight) / (heightInMeters * heightInMeters)).toFixed(
+          1
+        );
       }
     }
     return "N/A";
@@ -138,24 +156,24 @@ const Profile: React.FC = () => {
   // ✅ Handle Save
   const handleSave = async () => {
     let isValid = true;
-  
+
     if (!validateEmail(email || "")) isValid = false;
     if (!validatePhone(phone || "")) isValid = false;
     if (!validateHeight(height || "")) isValid = false;
-  
+
     if (isValid) {
       try {
         console.log("Updating user data...");
-  
+
         let uploadedImageUrl = profilePicture; // fallback to existing
-  
+
         // ✅ If a new profile image is selected, upload it
         if (newProfileImage) {
           console.log("Uploading new profile image...");
           uploadedImageUrl = await uploadImageToServer(newProfileImage); // replace with your own logic
           console.log("Uploaded Image URL:", uploadedImageUrl);
         }
-  
+
         // ✅ Build request body
         const updatedUserData = {
           nickname: username || "",
@@ -168,9 +186,9 @@ const Profile: React.FC = () => {
           first_name: firstName || "",
           last_name: lastName || "",
         };
-  
+
         console.log("Request Body:", updatedUserData);
-  
+
         // ✅ Update state
         setUsername(updatedUserData.nickname);
         setFirstName(updatedUserData.first_name);
@@ -182,12 +200,12 @@ const Profile: React.FC = () => {
         setGender(updatedUserData.gender ? "Male" : "Female");
         setHeight(updatedUserData.height.toString());
         setNewProfileImage(null); // Clear temp image
-  
+
         // ✅ API call
         await apiRequest("UPDATE_USER" as ApiRoute, {
           body: updatedUserData,
         });
-  
+
         console.log("Profile updated successfully");
         setIsEditing(false);
       } catch (error) {
@@ -195,7 +213,7 @@ const Profile: React.FC = () => {
         alert(`Failed to update profile: ${error}`);
       }
     }
-  };  
+  };
 
   const handleCancel = () => {
     setIsEditing(false);
@@ -218,39 +236,42 @@ const Profile: React.FC = () => {
 
         {/* Profile Header */}
         <div className="flex flex-col md:flex-row items-center text-center md:text-left md:justify-start w-full gap-6 md:gap-10 border-b border-gray-200 pb-6">
-        {/* Profile Picture */}
-        {isEditing ? (
-          <label htmlFor="profile-upload" className="cursor-pointer relative group">
+          {/* Profile Picture */}
+          {isEditing ? (
+            <label
+              htmlFor="profile-upload"
+              className="cursor-pointer relative group"
+            >
+              <img
+                src={
+                  newProfileImage
+                    ? URL.createObjectURL(newProfileImage)
+                    : profilePicture || DefaultAvatar
+                }
+                alt="Profile"
+                className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-2 border-gray-300 group-hover:border-blue-500 transition"
+              />
+              <input
+                type="file"
+                id="profile-upload"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setNewProfileImage(file);
+                }}
+                className="hidden"
+              />
+              <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
+                Change
+              </span>
+            </label>
+          ) : (
             <img
-              src={
-                newProfileImage
-                  ? URL.createObjectURL(newProfileImage)
-                  : profilePicture || DefaultAvatar
-              }
+              src={profilePicture || DefaultAvatar}
               alt="Profile"
-              className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-2 border-gray-300 group-hover:border-blue-500 transition"
+              className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
             />
-            <input
-              type="file"
-              id="profile-upload"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) setNewProfileImage(file);
-              }}
-              className="hidden"
-            />
-            <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
-              Change
-            </span>
-          </label>
-        ) : (
-          <img
-            src={profilePicture || DefaultAvatar}
-            alt="Profile"
-            className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover"
-          />
-        )}
+          )}
 
           {/* User Name */}
           <div className="flex flex-col items-center md:items-start">
@@ -323,7 +344,12 @@ const Profile: React.FC = () => {
 
           {/* User Data Rows */}
           <div className="flex flex-col gap-4 w-full">
-            <DataRow icon={<FaRegIdCard />} label="User ID" value={userId || ""} isBold />
+            <DataRow
+              icon={<FaRegIdCard />}
+              label="User ID"
+              value={userId || ""}
+              isBold
+            />
             <DataRow
               icon={<FaLock />}
               label="Password"
@@ -379,7 +405,9 @@ const Profile: React.FC = () => {
               isBold
               unit="cm"
             />
-            {heightError && <p className="text-red-500 text-sm">{heightError}</p>}
+            {heightError && (
+              <p className="text-red-500 text-sm">{heightError}</p>
+            )}
             <DataRow
               icon={<GiWeight />}
               label="Weight"
@@ -388,7 +416,12 @@ const Profile: React.FC = () => {
               isBold
               unit="kg"
             />
-            <DataRow icon={<GiWeight />} label="BMI" value={calculateBMI()} isBold />
+            <DataRow
+              icon={<GiWeight />}
+              label="BMI"
+              value={calculateBMI()}
+              isBold
+            />
             {/* Delete Account Row */}
             <DataRow
               icon={<IoIosWarning />}
@@ -402,10 +435,10 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-      {/* Achievements Section
+        {/* Achievements Section
         <AchievementsSection /> */}
       </div>
-      
+
       {/* POPUPS */}
       {showResetPopup && (
         <Popup
@@ -436,10 +469,16 @@ const Profile: React.FC = () => {
 const AchievementsSection: React.FC = () => {
   return (
     <div className="mt-10 w-full">
-      <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">Achievements</h2>
+      <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
+        Achievements
+      </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
         {Array.from({ length: 15 }).map((_, index) => (
-          <AchievementCard key={index} title="Yay" icon={<HiThumbUp className="text-yellow-400 text-2xl" />} />
+          <AchievementCard
+            key={index}
+            title="Yay"
+            icon={<HiThumbUp className="text-yellow-400 text-2xl" />}
+          />
         ))}
       </div>
     </div>
@@ -447,7 +486,10 @@ const AchievementsSection: React.FC = () => {
 };
 
 // 🏆 Individual Achievement Card
-const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({ title, icon }) => {
+const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({
+  title,
+  icon,
+}) => {
   return (
     <div className="flex flex-col items-center justify-center bg-[rgba(239,240,240,0.3)] rounded-lg w-40 h-24 p-4">
       {icon}
@@ -488,7 +530,7 @@ const DataRow: React.FC<{
   icon: React.ReactNode;
   label: string;
   value: string;
-  type?: 'text' | 'number' | 'date' | 'email';
+  type?: "text" | "number" | "date" | "email";
   isPassword?: boolean;
   isDelete?: boolean;
   stacked?: boolean;
@@ -504,7 +546,7 @@ const DataRow: React.FC<{
   icon,
   label,
   value,
-  type = 'text',
+  type = "text",
   isPassword = false,
   isDelete = false,
   stacked = false,
@@ -531,7 +573,9 @@ const DataRow: React.FC<{
   };
 
   const handleConfirm = () => {
-    console.log(`${popupMessage.includes("reset") ? "Password reset" : "Account deleted"}`);
+    console.log(
+      `${popupMessage.includes("reset") ? "Password reset" : "Account deleted"}`
+    );
     setShowPopup(false);
   };
 
@@ -579,7 +623,7 @@ const DataRow: React.FC<{
                       </option>
                     ))}
                   </select>
-                ) : type === "date" ? ( 
+                ) : type === "date" ? (
                   <input
                     type="date"
                     value={value}

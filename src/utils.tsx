@@ -37,4 +37,8 @@ export type DashboardDataProps = {
   day_water: number;
   day_sleep: number;
   day_weight: number;
+  day_calories_diff: number,
+  day_steps_diff: number,
+  day_sleep_diff: number,
+  day_water_diff: number,
 };

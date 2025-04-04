@@ -38,6 +38,10 @@ const filterData = (data: any): DashboardDataProps => {
     day_water: data.day_water ?? 0,
     day_sleep: data.day_sleep ?? 0,
     day_weight: data.day_weight ?? 0,
+    day_calories_diff: data.day_calories_diff ?? 0,
+    day_sleep_diff: data.day_sleep_diff ?? 0,
+    day_steps_diff: data.day_steps_diff ?? 0,
+    day_water_diff: data.day_water_diff ?? 0,
   };
 };
 
@@ -59,23 +63,23 @@ const MetricCard: React.FC<MetricCardProps> = ({
   setMetric,
 }) => {
   return (
-    <div className="w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl bg-white p-3 flex flex-col">
-      <div className="w-full h-[30px] text-lg flex text-[#5C6670] ">
-        <span className={`flex-1 text-[16px] sm:text-[18px]`}>{metric}</span>
+    <div
+      onClick={() => setMetric(metric)}
+      className="w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] bg-white p-3 flex flex-col rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1)] 
+                 hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer"
+    >
+      <div className="w-full h-[30px] text-lg flex text-[#5C6670]">
+        <span className="flex-1 text-[16px] sm:text-[18px]">{metric}</span>
         <div className="hidden sm:block">{icon}</div>
       </div>
-      <div className="w-full flex-1  items-end flex gap-1 ">
+      <div className="w-full flex-1 items-end flex gap-1">
         <span className="text-3xl sm:text-4xl font-bold">{value}</span>
         {units && <span className="text-slate-500 font-bold">{units}</span>}
-        <CiEdit
-          onClick={() => setMetric(metric)}
-          className="w-[18px] h-[18px] cursor-pointer"
-        />
       </div>
       <div
         className={`w-full h-[30px] text-[10px] sm:text-[12px] font-bold flex items-center ${
           trend > 0 ? "text-green-400" : "text-red-400"
-        } `}
+        }`}
       >
         {trend > 0 ? "↑ " : "↓ "}
         {trend}% from yesterday
@@ -83,6 +87,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
     </div>
   );
 };
+
 interface ContentCardProps {
   content: ReactElement;
   title: string;
@@ -96,21 +101,36 @@ const ContentCard: React.FC<ContentCardProps> = ({
   action,
 }) => {
   return (
-    <div className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col">
-      <div className="flex items-center justify-between">
+    <div
+      className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col
+        hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+    >
+      <div
+        className="flex items-center justify-between cursor-pointer"
+        onClick={action}
+      >
         <span className="text-[#5C6670] text-[16px] sm:text-lg font-semibold">
           {title}
         </span>
         {actionText && (
           <span
-            className="text-red-500 text-[13px] sm:text-md  hover:underline hover:cursor-pointer"
-            onClick={action}
+            className="text-red-500 text-[13px] sm:text-md hover:underline"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent triggering parent click
+              action?.();
+            }}
           >
             {actionText}
           </span>
         )}
       </div>
-      <div className="w-full flex-1  rounded-lg">{content}</div>
+
+      <div
+        className="w-full flex-1 rounded-lg"
+        onClick={(e) => e.stopPropagation()} // Prevent bubbling from inner content
+      >
+        {content}
+      </div>
     </div>
   );
 };
@@ -130,18 +150,21 @@ const Dashboard: React.FC<DashboardProps> = () => {
     useState<FetchUserAttributesOutput | null>(null);
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
 
-  //On screen load, grab user details and health data
   useEffect(() => {
     async function fetchData() {
       const hold = await fetchUserAttributes();
       setUserDetails(hold);
+
+      const today = new Date().toLocaleDateString("en-CA", {
+        timeZone: "America/New_York",
+      });
+
       try {
         const result = await apiRequest("GET_HEALTH_DATA", {
-          queryParams: { date: "2025-03-06" },
+          queryParams: { date: today },
         });
         setData(filterData(result.data));
       } catch {
-        //blank data
         setData(filterData({}));
       }
     }
@@ -149,13 +172,25 @@ const Dashboard: React.FC<DashboardProps> = () => {
     fetchData();
   }, []);
 
-  //Update DB with new data
   async function updateDB(update: DashboardDataProps) {
+    const today = new Date().toLocaleDateString("en-CA", {
+      timeZone: "America/New_York",
+    });
+
+    // Destructure and omit the diff fields
+    const {
+      day_calories_diff,
+      day_steps_diff,
+      day_sleep_diff,
+      day_water_diff,
+      ...cleanUpdate
+    } = update;
+
     await apiRequest("UPDATE_HEALTH_DATA", {
       queryParams: {
-        date: "2025-03-06",
+        date: today,
       },
-      body: update,
+      body: cleanUpdate,
     });
   }
 
@@ -178,7 +213,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 metric="Calories Burnt"
                 value={data?.day_calories ?? 0}
                 icon={<FaFire fill="#fc7703" />}
-                trend={13.1}
+                trend={data?.day_calories_diff ?? 0}
                 units=""
                 setMetric={() => setLogMetric("Calories")}
               />
@@ -186,7 +221,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 metric="Steps"
                 value={data?.day_steps ?? 0}
                 icon={<IoFootsteps />}
-                trend={-2.1}
+                trend={data?.day_steps_diff ?? 0}
                 units=""
                 setMetric={() => setLogMetric("Steps")}
               />
@@ -194,7 +229,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 metric="Sleep Duration"
                 value={data?.day_sleep ?? 0}
                 icon={<GiNightSleep fill="#c603fc" />}
-                trend={1.8}
+                trend={data?.day_sleep_diff ?? 0}
                 units="h"
                 setMetric={() => setLogMetric("Sleep")}
               />
@@ -202,7 +237,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 metric="Water Intake"
                 value={data?.day_water ?? 0}
                 icon={<IoIosWater fill="#5555FF" />}
-                trend={5.3}
+                trend={data?.day_water_diff ?? 0}
                 units="L"
                 setMetric={() => setLogMetric("Water")}
               />
@@ -210,18 +245,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
               <ContentCard
                 title="Weight"
+                action={() => setLogMetric("Weight")}
                 content={
                   <div>
                     <h2>Amazon Quicksight visual to be implemented</h2>
-                    <div className="w-full h-[200px] flex justify-center items-end ">
-                      <button
-                        title="log weight"
-                        className="bg-red-400 p-2 rounded-2xl h-[40px] cursor-pointer "
-                        onClick={() => setLogMetric("Weight")}
-                      >
-                        Log Weight
-                      </button>
-                    </div>
                   </div>
                 }
               />
@@ -234,7 +261,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
               <ContentCard
                 title="Today's Consumption"
                 action={() => setLogConsumption(true)}
-                actionText="+ Add"
                 content={
                   <div className="w-full  flex-1 rounded-lg  gap-2 flex flex-col p-2">
                     {Consumption?.map((item, index) => (
@@ -296,7 +322,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
               />
               <ContentCard
                 title="Today's Workout Plan"
-                actionText="Edit Workout Plan"
                 action={() => navigate("/workout-plan")}
                 content={
                   <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2 ">
@@ -481,7 +506,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           ...prev,
                           macros: {
                             carb: Number(e.target.value),
-                            protein: prev.macros.carb,
+                            protein: prev.macros.protein,
                             fat: prev.macros.fat,
                           },
                         };
@@ -505,7 +530,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           macros: {
                             fat: Number(e.target.value),
                             carb: prev.macros.carb,
-                            protein: prev.macros.fat,
+                            protein: prev.macros.protein,
                           },
                         };
                         return updatedData;
