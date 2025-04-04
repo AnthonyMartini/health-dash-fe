@@ -10,9 +10,27 @@ import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
 import { apiRequest, ApiRoute } from "../utils/APIService";
 
+// === Public VAPID key ===
+const VAPID_PUBLIC_KEY = "BPE1_Y7s1jfjaSt06dNqIkD7LrzdWdyU2lK6NFoW8cAkk74NcAFpRPrT3yEA4bihIGgH6zAQLJkj3t_mC6jxZRs";
+
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 const Profile: React.FC = () => {
   const navigate = useNavigate();
 
+  // State for toggles
+  const [notificationToggle, setNotificationToggle] = useState(false)
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
 
@@ -202,6 +220,63 @@ const Profile: React.FC = () => {
     fetchUserData(); // ✅ Reset to original values
   };
 
+  const handleToggleNotification = async () => {
+    const toggled = !notificationToggle;
+    setNotificationToggle(toggled);
+  
+    if ("serviceWorker" in navigator && "PushManager" in window) {
+      try {
+        const reg = await navigator.serviceWorker.register("/worker.js");
+        console.log("Service Worker registered:", reg);
+  
+        let subscription = await reg.pushManager.getSubscription();
+  
+        if (toggled) {
+          if (!subscription) {
+            subscription = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+            });
+            console.log("🟢 New Push Subscription:", subscription);
+          }
+  
+          const device = /Mobi|Android/i.test(navigator.userAgent)
+            ? "mobile"
+            : "desktop";
+  
+          const browser = (() => {
+            if (navigator.userAgent.includes("Chrome")) return "chrome";
+            if (navigator.userAgent.includes("Firefox")) return "firefox";
+            if (navigator.userAgent.includes("Safari")) return "safari";
+            return "unknown";
+          })();
+  
+          await apiRequest("SUBSCRIBE_NOTIFICATION", {
+            body: { subscription, device, browser },
+          });
+  
+          console.log("✅ Push subscription sent to backend.");
+        } else {
+          // UNSUBSCRIBE
+          if (subscription) {
+            await subscription.unsubscribe();
+            console.log("🔴 Push subscription removed from browser");
+          }
+  
+          await apiRequest("UNSUBSCRIBE_NOTIFICATION", {
+            body: { device: "desktop", browser: "chrome" }, // optionally pass if needed
+          });
+  
+          console.log("✅ Push subscription removed from backend.");
+        }
+      } catch (err) {
+        console.error("⚠️ Push subscription toggle error:", err);
+      }
+    } else {
+      alert("Push notifications are not supported in this browser.");
+    }
+  };
+  
   return (
     <div className="flex flex-col bg-white h-screen w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-8 overflow-y-auto">
       {/* Scrollable Content */}
@@ -340,6 +415,16 @@ const Profile: React.FC = () => {
               isBold
               type="email"
             />
+            <DataRow
+              icon={<MdEmail />}
+              label="Push Notification"
+              value={""}
+              onChange={setEmail}
+              editable={isEditing}
+              isBold
+              onToggle={handleToggleNotification}
+              toggle={notificationToggle}              
+            />
             {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
             <DataRow
               icon={<AiFillPhone />}
@@ -347,7 +432,6 @@ const Profile: React.FC = () => {
               value={phone || ""}
               onChange={setPhone}
               editable={isEditing}
-              isBold
               type="text"
             />
             {phoneError && <p className="text-red-500 text-sm">{phoneError}</p>}
@@ -494,6 +578,8 @@ const DataRow: React.FC<{
   stacked?: boolean;
   isBold?: boolean;
   noBoldValue?: boolean;
+  toggle?: boolean;
+  onToggle?: () => void;
   onReset?: () => void;
   onDelete?: () => void;
   editable?: boolean;
@@ -512,6 +598,8 @@ const DataRow: React.FC<{
   noBoldValue = false,
   editable = false,
   onChange,
+  toggle,
+  onToggle,
   unit,
   options,
 }) => {
@@ -550,6 +638,47 @@ const DataRow: React.FC<{
             >
               {label}
             </span>
+            {/* ✅ Show value underneath the label for stacked types (Email and Phone) */}
+            {!isDelete && stacked && (
+               editable ? (
+                 options ? (
+                   // ✅ Dropdown for options (like Gender)
+                   <select
+                     value={value}
+                     onChange={(e) => onChange?.(e.target.value)}
+                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                   >
+                     {options.map((option) => (
+                       <option key={option} value={option}>
+                         {option}
+                       </option>
+                     ))}
+                   </select>
+                 ) : type === "date" ? (
+                   <input
+                     type="date"
+                     value={value}
+                     onChange={(e) => onChange?.(e.target.value)}
+                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                   />
+                 ) : (
+                   <input
+                     type={type}
+                     value={value}
+                     onChange={(e) => onChange?.(e.target.value)}
+                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                   />
+                 )
+               ) : (
+                 <span
+                   className={`text-gray-800 text-base ${
+                     isBold && !noBoldValue ? "font-semibold" : ""
+                   }`}
+                 >
+                   {value}
+                 </span>
+               )
+             )}
           </div>
         </div>
 
@@ -614,6 +743,22 @@ const DataRow: React.FC<{
               Delete
             </button>
           )}
+          {/* ✅ Toggle Button */}
+          {onToggle && (
+             <button
+               title="Toggle"
+               onClick={onToggle}
+               className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
+                 toggle ? "bg-[#34C759]" : "bg-[#FF3B30]"
+               }`}
+             >
+               <div
+                 className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                   toggle ? "translate-x-6" : ""
+                 }`}
+               ></div>
+             </button>
+           )}
         </div>
       </div>
 

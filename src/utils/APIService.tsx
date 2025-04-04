@@ -18,21 +18,17 @@ export const API_ROUTES = {
   GET_USER: { path: "/user-profile", method: API_METHODS.GET },
   UPDATE_USER: { path: "/user-profile", method: API_METHODS.POST },
   DELETE_USER: { path: "/user-profile", method: API_METHODS.DELETE },
-  DELETE_WORKOUT_CARD: {
-    path: "/workoutplan-card",
-    method: API_METHODS.DELETE,
-  },
+  DELETE_WORKOUT_CARD: { path: "/workoutplan-card", method: API_METHODS.DELETE },
   UPDATE_WORKOUT_CARD: { path: "/workoutplan-card", method: API_METHODS.POST },
   GET_WORKOUT_CARD: { path: "/workoutplan-card", method: API_METHODS.GET },
   GET_WEEKLY_PLAN: { path: "/workoutplan-weekly", method: API_METHODS.GET },
   STORE_WEEKLY_PLAN: { path: "/workoutplan-weekly", method: API_METHODS.POST },
-  DELETE_WEEKLY_PLAN: {
-    path: "/workoutplan-weekly",
-    method: API_METHODS.DELETE,
-  },
+  DELETE_WEEKLY_PLAN: { path: "/workoutplan-weekly", method: API_METHODS.DELETE },
   LIST_TABLE: { path: "/health-data/tables", method: API_METHODS.GET },
   GET_GOALS: { path: "/goals", method: API_METHODS.GET },
   UPDATE_GOALS: { path: "/goals", method: API_METHODS.POST },
+  SUBSCRIBE_NOTIFICATION: { path: "/user-profile/subscribe", method: API_METHODS.POST},
+  UNSUBSCRIBE_NOTIFICATION: { path: "/user-profile/unsubscribe", method: API_METHODS.POST}
 } as const;
 
 export type ApiRoute = keyof typeof API_ROUTES;
