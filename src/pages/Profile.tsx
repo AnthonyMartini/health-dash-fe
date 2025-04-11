@@ -363,6 +363,7 @@ const Profile: React.FC = () => {
             ) : (
               <>
                 <input
+                  title="Set Username"
                   type="text"
                   value={username || ""}
                   onChange={(e) => setUsername(e.target.value)}
@@ -692,6 +693,7 @@ const DataRow: React.FC<{
                 options ? (
                   // ✅ Dropdown for options (like Gender)
                   <select
+                    title="Select Options"
                     value={value}
                     onChange={(e) => onChange?.(e.target.value)}
                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
@@ -704,6 +706,7 @@ const DataRow: React.FC<{
                   </select>
                 ) : type === "date" ? (
                   <input
+                    title="Select Date"
                     type="date"
                     value={value}
                     onChange={(e) => onChange?.(e.target.value)}
@@ -711,6 +714,7 @@ const DataRow: React.FC<{
                   />
                 ) : (
                   <input
+                    title="Set Value"
                     type={type}
                     value={value}
                     onChange={(e) => onChange?.(e.target.value)}
@@ -745,6 +749,7 @@ const DataRow: React.FC<{
                 options ? (
                   // ✅ Dropdown on right side (if not underneath the label)
                   <select
+                    title="Select Options"
                     value={value}
                     onChange={(e) => onChange?.(e.target.value)}
                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
@@ -757,6 +762,7 @@ const DataRow: React.FC<{
                   </select>
                 ) : type === "date" ? (
                   <input
+                    title="Select Date"
                     type="date"
                     value={value}
                     onChange={(e) => onChange?.(e.target.value)}
@@ -764,6 +770,7 @@ const DataRow: React.FC<{
                   />
                 ) : (
                   <input
+                    title="Set Value"
                     type={type}
                     value={value}
                     onChange={(e) => onChange?.(e.target.value)}
