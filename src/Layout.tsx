@@ -2,7 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import Header from "./components/NavBarHeader";
 
-const Layout: React.FC = ({}) => {
+const Layout: React.FC = () => {
   return (
     <div className="w-full h-full flex flex-col ">
       {/* Sidebar */}

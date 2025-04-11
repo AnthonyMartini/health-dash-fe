@@ -10,15 +10,15 @@ import { CiTrash } from "react-icons/ci";
 // Single exercise item displayed on plan cards
 interface ExerciseProps {
   title: string;
-  weight: Number;
-  sets: Number;
-  reps: Number;
+  weight: number;
+  sets: number;
+  reps: number;
 }
 
 interface PlanProps {
   workoutcard_title: string;
   workoutbucket_id: string;
-  workoutcard_favcount: Number;
+  workoutcard_favcount: number;
   workoutcard_id: string;
   username: string; // e.g. "@TheRock"
   favorite?: boolean; // whether to show the heart icon
@@ -208,21 +208,27 @@ const WorkoutPlan: React.FC = () => {
           queryParams: { action: "user" },
         });
         setFavoritePlans(filterPlans(true, result.data));
-      } catch {}
+      } catch {
+        /*NOOP*/
+      }
       try {
         const result2 = await apiRequest("GET_WEEKLY_PLAN", {
           queryParams: {},
         });
 
         setWeeklyPlan(filterWeekly(result2.data));
-      } catch {}
+      } catch {
+        /*NOOP*/
+      }
       try {
         const result2 = await apiRequest("GET_WORKOUT_CARD", {
           queryParams: { action: "discover" },
         });
         setDiscoverPlans(filterPlans(false, result2.data.discover));
         setPopularPlans(filterPlans(false, result2.data.popular));
-      } catch {}
+      } catch {
+        /*NOOP*/
+      }
     }
 
     fetchData();
@@ -345,7 +351,9 @@ const WorkoutPlan: React.FC = () => {
                                     day_of_week: dayMapping[wDay.day],
                                   },
                                 });
-                              } catch {}
+                              } catch {
+                                /*NOOP*/
+                              }
                             }
                             sendData();
                             setWeeklyPlan((prevWeeklyPlan) =>
@@ -416,7 +424,9 @@ const WorkoutPlan: React.FC = () => {
                               selectedPlan.workoutcard_favcount,
                           },
                         });
-                      } catch {}
+                      } catch {
+                        /*NOOP*/
+                      }
                     }
                     sendData();
                   }}
@@ -557,7 +567,9 @@ const WorkoutPlan: React.FC = () => {
                           workoutcard_content: { exercises: exercises },
                         },
                       ]);
-                    } catch {}
+                    } catch {
+                      /*NOOP*/
+                    }
                   }
 
                   sendData();
@@ -604,7 +616,9 @@ const WorkoutPlan: React.FC = () => {
                           (plan) => plan.workoutcard_id !== confirmDelete
                         )
                       );
-                    } catch {}
+                    } catch {
+                      /*NOOP*/
+                    }
                   }
                   sendData();
                   setConfirmDelete("");

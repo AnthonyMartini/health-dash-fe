@@ -5,12 +5,11 @@ import { GiNightSleep } from "react-icons/gi";
 import { FaFire } from "react-icons/fa";
 import { FaBowlFood } from "react-icons/fa6";
 import { RiDrinks2Fill } from "react-icons/ri";
-import { CiEdit } from "react-icons/ci";
 import SideBar from "../components/SideBar";
 import { CiTrash } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
 
-import { apiRequest, ApiRoute } from "../utils/APIService";
+import { apiRequest } from "../utils/APIService";
 
 import { FoodItemProps, WorkoutPlanProps, DashboardDataProps } from "../utils";
 import {
@@ -155,7 +154,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     carb: number;
     fat: number;
   } {
-    var total = { protein: 0, carb: 0, fat: 0 };
+    const total = { protein: 0, carb: 0, fat: 0 };
     arr.forEach((item) => {
       total.protein += item.macros.protein;
       total.fat += item.macros.fat;
@@ -193,10 +192,12 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
     // Destructure and omit the diff fields
     const {
+      /*
       day_calories_diff,
       day_steps_diff,
       day_sleep_diff,
       day_water_diff,
+      */
       ...cleanUpdate
     } = update;
 
@@ -331,7 +332,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                                 ...prev,
 
                                 day_food: prev.day_food.filter(
-                                  (rem, idx) =>
+                                  (_, idx) =>
                                     idx !==
                                     prev.day_food.findIndex(
                                       (rem) => rem.title === item.title

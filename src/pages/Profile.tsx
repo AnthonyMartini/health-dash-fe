@@ -13,12 +13,13 @@ import { AiFillPhone } from "react-icons/ai";
 import { BiCalendar, BiMaleFemale } from "react-icons/bi";
 import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
-import { HiThumbUp } from "react-icons/hi";
+//import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
 import { apiRequest, ApiRoute } from "../utils/APIService";
 
 // === Public VAPID key ===
-const VAPID_PUBLIC_KEY = "BPE1_Y7s1jfjaSt06dNqIkD7LrzdWdyU2lK6NFoW8cAkk74NcAFpRPrT3yEA4bihIGgH6zAQLJkj3t_mC6jxZRs";
+const VAPID_PUBLIC_KEY =
+  "BPE1_Y7s1jfjaSt06dNqIkD7LrzdWdyU2lK6NFoW8cAkk74NcAFpRPrT3yEA4bihIGgH6zAQLJkj3t_mC6jxZRs";
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -37,7 +38,7 @@ const Profile: React.FC = () => {
   const navigate = useNavigate();
 
   // State for toggles
-  const [notificationToggle, setNotificationToggle] = useState(false)
+  const [notificationToggle, setNotificationToggle] = useState(false);
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
 
@@ -241,14 +242,14 @@ const Profile: React.FC = () => {
   const handleToggleNotification = async () => {
     const toggled = !notificationToggle;
     setNotificationToggle(toggled);
-  
+
     if ("serviceWorker" in navigator && "PushManager" in window) {
       try {
         const reg = await navigator.serviceWorker.register("/worker.js");
         console.log("Service Worker registered:", reg);
-  
+
         let subscription = await reg.pushManager.getSubscription();
-  
+
         if (toggled) {
           if (!subscription) {
             subscription = await reg.pushManager.subscribe({
@@ -257,22 +258,22 @@ const Profile: React.FC = () => {
             });
             console.log("🟢 New Push Subscription:", subscription);
           }
-  
+
           const device = /Mobi|Android/i.test(navigator.userAgent)
             ? "mobile"
             : "desktop";
-  
+
           const browser = (() => {
             if (navigator.userAgent.includes("Chrome")) return "chrome";
             if (navigator.userAgent.includes("Firefox")) return "firefox";
             if (navigator.userAgent.includes("Safari")) return "safari";
             return "unknown";
           })();
-  
+
           await apiRequest("SUBSCRIBE_NOTIFICATION", {
             body: { subscription, device, browser },
           });
-  
+
           console.log("✅ Push subscription sent to backend.");
         } else {
           // UNSUBSCRIBE
@@ -280,11 +281,11 @@ const Profile: React.FC = () => {
             await subscription.unsubscribe();
             console.log("🔴 Push subscription removed from browser");
           }
-  
+
           await apiRequest("UNSUBSCRIBE_NOTIFICATION", {
             body: { device: "desktop", browser: "chrome" }, // optionally pass if needed
           });
-  
+
           console.log("✅ Push subscription removed from backend.");
         }
       } catch (err) {
@@ -294,7 +295,7 @@ const Profile: React.FC = () => {
       alert("Push notifications are not supported in this browser.");
     }
   };
-  
+
   return (
     <div className="flex flex-col bg-white h-screen w-full px-4 sm:px-6 md:px-10 lg:px-16 xl:px-20 py-8 overflow-y-auto">
       {/* Scrollable Content */}
@@ -449,7 +450,7 @@ const Profile: React.FC = () => {
               editable={isEditing}
               isBold
               onToggle={handleToggleNotification}
-              toggle={notificationToggle}              
+              toggle={notificationToggle}
             />
             {emailError && <p className="text-red-500 text-sm">{emailError}</p>}
             <DataRow
@@ -549,7 +550,7 @@ const Profile: React.FC = () => {
   );
 };
 
-// 🏆 Achievements Section
+/*/ 🏆 Achievements Section
 const AchievementsSection: React.FC = () => {
   return (
     <div className="mt-10 w-full">
@@ -569,6 +570,7 @@ const AchievementsSection: React.FC = () => {
   );
 };
 
+
 // 🏆 Individual Achievement Card
 const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({
   title,
@@ -581,6 +583,7 @@ const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({
     </div>
   );
 };
+*/
 
 // ✅ Popup Component
 const Popup: React.FC<{
@@ -683,46 +686,46 @@ const DataRow: React.FC<{
               {label}
             </span>
             {/* ✅ Show value underneath the label for stacked types (Email and Phone) */}
-            {!isDelete && stacked && (
-               editable ? (
-                 options ? (
-                   // ✅ Dropdown for options (like Gender)
-                   <select
-                     value={value}
-                     onChange={(e) => onChange?.(e.target.value)}
-                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                   >
-                     {options.map((option) => (
-                       <option key={option} value={option}>
-                         {option}
-                       </option>
-                     ))}
-                   </select>
-                 ) : type === "date" ? (
-                   <input
-                     type="date"
-                     value={value}
-                     onChange={(e) => onChange?.(e.target.value)}
-                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                   />
-                 ) : (
-                   <input
-                     type={type}
-                     value={value}
-                     onChange={(e) => onChange?.(e.target.value)}
-                     className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
-                   />
-                 )
-               ) : (
-                 <span
-                   className={`text-gray-800 text-base ${
-                     isBold && !noBoldValue ? "font-semibold" : ""
-                   }`}
-                 >
-                   {value}
-                 </span>
-               )
-             )}
+            {!isDelete &&
+              stacked &&
+              (editable ? (
+                options ? (
+                  // ✅ Dropdown for options (like Gender)
+                  <select
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  >
+                    {options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : type === "date" ? (
+                  <input
+                    type="date"
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                ) : (
+                  <input
+                    type={type}
+                    value={value}
+                    onChange={(e) => onChange?.(e.target.value)}
+                    className="text-gray-800 text-base border-b border-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                )
+              ) : (
+                <span
+                  className={`text-gray-800 text-base ${
+                    isBold && !noBoldValue ? "font-semibold" : ""
+                  }`}
+                >
+                  {value}
+                </span>
+              ))}
           </div>
         </div>
 
@@ -789,20 +792,20 @@ const DataRow: React.FC<{
           )}
           {/* ✅ Toggle Button */}
           {onToggle && (
-             <button
-               title="Toggle"
-               onClick={onToggle}
-               className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
-                 toggle ? "bg-[#34C759]" : "bg-[#FF3B30]"
-               }`}
-             >
-               <div
-                 className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
-                   toggle ? "translate-x-6" : ""
-                 }`}
-               ></div>
-             </button>
-           )}
+            <button
+              title="Toggle"
+              onClick={onToggle}
+              className={`w-12 h-6 flex items-center rounded-full p-1 transition-colors ${
+                toggle ? "bg-[#34C759]" : "bg-[#FF3B30]"
+              }`}
+            >
+              <div
+                className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform ${
+                  toggle ? "translate-x-6" : ""
+                }`}
+              ></div>
+            </button>
+          )}
         </div>
       </div>
 
