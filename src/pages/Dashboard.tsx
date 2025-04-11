@@ -150,6 +150,20 @@ const Dashboard: React.FC<DashboardProps> = () => {
     useState<FetchUserAttributesOutput | null>(null);
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
 
+  function getTotalMacros(arr: FoodItemProps[]): {
+    protein: number;
+    carb: number;
+    fat: number;
+  } {
+    var total = { protein: 0, carb: 0, fat: 0 };
+    arr.forEach((item) => {
+      total.protein += item.macros.protein;
+      total.fat += item.macros.fat;
+      total.carb += item.macros.carb;
+    });
+    return total;
+  }
+
   useEffect(() => {
     async function fetchData() {
       const hold = await fetchUserAttributes();
@@ -249,12 +263,29 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 content={
                   <div>
                     <h2>Amazon Quicksight visual to be implemented</h2>
+                    <h3>Your Logged Weight: {data?.day_weight} Kg</h3>
                   </div>
                 }
               />
               <ContentCard
                 title="Macros"
-                content={<div>Amazon Quicksight visual to be implemented</div>}
+                content={
+                  <div>
+                    <h2>Amazon Quicksight visual to be implemented</h2>
+                    <h3>Your Macros Today:</h3>
+                    <div className="flex font-bold gap-2 ">
+                      <span className="text-[#FFA500]">
+                        {getTotalMacros(Consumption).protein}g protein
+                      </span>
+                      <span className="text-[#007AFF]">
+                        {getTotalMacros(Consumption).carb}g carbs
+                      </span>
+                      <span className="text-[#AF52DE]">
+                        {getTotalMacros(Consumption).fat}g fat
+                      </span>
+                    </div>
+                  </div>
+                }
               />
             </div>
             <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">

@@ -12,18 +12,9 @@ const App: React.FC = () => {
     <Router>
       <Routes>
         {/* Routes with Sidebar */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<Dashboard />} />
+        <Route path="" element={<Layout />}>
           <Route
-            path="profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          ></Route>
-          <Route
-            path="dashboard"
+            index
             element={
               <ProtectedRoute>
                 <Dashboard />
@@ -31,7 +22,23 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="workout-plan"
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          ></Route>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workout-plan"
             element={
               <ProtectedRoute>
                 <WorkoutPlan />
@@ -47,7 +54,7 @@ const App: React.FC = () => {
             }
           />
           <Route
-            path="*"
+            path="/*"
             element={
               <ProtectedRoute>
                 <Dashboard />
