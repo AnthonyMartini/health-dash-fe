@@ -28,7 +28,8 @@ export const API_ROUTES = {
   GET_GOALS: { path: "/goals", method: API_METHODS.GET },
   UPDATE_GOALS: { path: "/goals", method: API_METHODS.POST },
   SUBSCRIBE_NOTIFICATION: { path: "/user-profile/subscribe", method: API_METHODS.POST},
-  UNSUBSCRIBE_NOTIFICATION: { path: "/user-profile/unsubscribe", method: API_METHODS.POST}
+  UNSUBSCRIBE_NOTIFICATION: { path: "/user-profile/unsubscribe", method: API_METHODS.POST},
+  QUICKSIGHT: { path: "/quicksight", method: API_METHODS.GET},
 } as const;
 
 export type ApiRoute = keyof typeof API_ROUTES;
