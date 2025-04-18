@@ -3,7 +3,8 @@ import { useAuthenticator } from "@aws-amplify/ui-react";
 import { IoIosNotifications } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import APPIconSVG from "../assets/AppIcon.svg";
-import DefaultAvatar from "../assets/defaultAvatar.png"
+import DefaultAvatar from "../assets/defaultAvatar.png";
+import { useUser } from "../GlobalContext.tsx";
 
 interface NavBarHeaderProps {
   logoText?: string;
@@ -15,6 +16,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   //onNotificationClick = () => console.log("Notifications clicked"),
   onProfileClick = () => console.log("Profile clicked"),
 }) => {
+  const { user } = useUser(); // grab user data from context
   const navigate = useNavigate();
   const { signOut } = useAuthenticator();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -36,7 +38,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
           onMouseLeave={() => setShowProfileMenu(false)}
         >
           <img
-            src={DefaultAvatar}
+            src={user.user_profile_picture_url || DefaultAvatar}
             alt="Profile"
             className="w-11 h-11 cursor-pointer rounded-full hover:opacity-90"
             onClick={onProfileClick}

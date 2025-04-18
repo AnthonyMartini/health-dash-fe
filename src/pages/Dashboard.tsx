@@ -8,14 +8,10 @@ import { RiDrinks2Fill } from "react-icons/ri";
 import SideBar from "../components/SideBar";
 import { CiTrash } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
-
+import { useUser } from "../GlobalContext.tsx";
 import { apiRequest } from "../utils/APIService";
 
 import { FoodItemProps, WorkoutPlanProps, DashboardDataProps } from "../utils";
-import {
-  fetchUserAttributes,
-  FetchUserAttributesOutput,
-} from "aws-amplify/auth";
 interface DashboardProps {
   Page?: string;
 }
@@ -159,6 +155,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
 };
 
 const Dashboard: React.FC<DashboardProps> = () => {
+  const { user } = useUser(); // grab user data from context
   const [logMetric, setLogMetric] = useState("");
   const [logMetricValue, setLogMetricValue] = useState(0.0);
   const [logConsumption, setLogConsumption] = useState(false);
@@ -173,8 +170,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     status: false,
   });
   const navigate = useNavigate();
-  const [userDetails, setUserDetails] =
-    useState<FetchUserAttributesOutput | null>(null);
+
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
   const [Workouts, setWorkouts] = useState<WorkoutPlanProps[]>(
     filterWorkout([])
@@ -184,10 +180,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const hold = await fetchUserAttributes();
-      console.log(hold);
-      setUserDetails(hold);
-
       const today = new Date().toLocaleDateString("en-CA", {
         timeZone: "America/New_York",
       });
@@ -246,12 +238,12 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   const Consumption: FoodItemProps[] | undefined = data?.day_food;
   return (
-    <div className="h-full w-full flex md:flex-row flex-col ">
+    <div className="h- w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-50/90 overflow-y-scroll">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
-            Welcome Back, {userDetails?.name}
+            Welcome Back, {user?.first_name}
           </h1>
           <h3 className=" text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
             Here is your health overview for the day:
