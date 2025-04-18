@@ -41,8 +41,20 @@ const filterData = (data: any): DashboardDataProps => {
     day_sleep_diff: data.day_sleep_diff ?? 0,
     day_steps_diff: data.day_steps_diff ?? 0,
     day_water_diff: data.day_water_diff ?? 0,
+    previous_day: data.previous_day ?? 'previous day',
   };
 };
+
+function getPreviousDayLabel(previousDate: string): string {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  const easternYesterday = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+  }).format(yesterday);
+
+  return previousDate === easternYesterday ? "yesterday" : previousDate;
+}
 
 //Define Card Array
 interface MetricCardProps {
@@ -51,6 +63,7 @@ interface MetricCardProps {
   value: number;
   icon: ReactElement;
   trend: number;
+  previous_day: string;
   setMetric: (metric: string) => void;
 }
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -60,6 +73,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   trend,
   units,
   setMetric,
+  previous_day=null
 }) => {
   return (
     <div
@@ -81,7 +95,8 @@ const MetricCard: React.FC<MetricCardProps> = ({
         }`}
       >
         {trend > 0 ? "↑ " : "↓ "}
-        {trend}% from yesterday
+        {Math.abs(trend)}% from {getPreviousDayLabel(previous_day ?? "")}
+
       </div>
     </div>
   );
@@ -148,6 +163,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [userDetails, setUserDetails] =
     useState<FetchUserAttributesOutput | null>(null);
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
+  const [weightEmbedUrl, setWeightEmbedUrl] = useState("");
+  const [macrosEmbedUrl, setMacrosEmbedUrl] = useState("");
 
   function getTotalMacros(arr: FoodItemProps[]): {
     protein: number;
@@ -167,11 +184,11 @@ const Dashboard: React.FC<DashboardProps> = () => {
     async function fetchData() {
       const hold = await fetchUserAttributes();
       setUserDetails(hold);
-
+  
       const today = new Date().toLocaleDateString("en-CA", {
         timeZone: "America/New_York",
       });
-
+  
       try {
         const result = await apiRequest("GET_HEALTH_DATA", {
           queryParams: { date: today },
@@ -181,34 +198,44 @@ const Dashboard: React.FC<DashboardProps> = () => {
         setData(filterData({}));
       }
     }
-
+  
+    async function fetchEmbedUrls() {
+      try {
+        const response = await apiRequest("QUICKSIGHT")
+        setWeightEmbedUrl(response.weightEmbedUrl);
+        setMacrosEmbedUrl(response.macrosEmbedUrl);
+      } catch (err) {
+        console.error("Failed to load QuickSight iframe URLs:", err);
+      }
+    }
+  
+    fetchEmbedUrls();
     fetchData();
   }, []);
+  
+  
 
   async function updateDB(update: DashboardDataProps) {
     const today = new Date().toLocaleDateString("en-CA", {
       timeZone: "America/New_York",
     });
-
-    // Destructure and omit the diff fields
+  
+    // Destructure and omit all derived fields
     const {
-      /*
       day_calories_diff,
-      day_steps_diff,
       day_sleep_diff,
+      day_steps_diff,
       day_water_diff,
-      */
+      previous_day,
       ...cleanUpdate
     } = update;
-
+  
     await apiRequest("UPDATE_HEALTH_DATA", {
-      queryParams: {
-        date: today,
-      },
+      queryParams: { date: today },
       body: cleanUpdate,
     });
   }
-
+  
   const Consumption: FoodItemProps[] | undefined = data?.day_food;
   const Workouts: WorkoutPlanProps[] | undefined = data?.day_workout_plan;
   return (
@@ -229,6 +256,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 value={data?.day_calories ?? 0}
                 icon={<FaFire fill="#fc7703" />}
                 trend={data?.day_calories_diff ?? 0}
+                previous_day={data.previous_day}
                 units=""
                 setMetric={() => setLogMetric("Calories")}
               />
@@ -238,6 +266,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 icon={<IoFootsteps />}
                 trend={data?.day_steps_diff ?? 0}
                 units=""
+                previous_day={data.previous_day}
                 setMetric={() => setLogMetric("Steps")}
               />
               <MetricCard
@@ -245,6 +274,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 value={data?.day_sleep ?? 0}
                 icon={<GiNightSleep fill="#c603fc" />}
                 trend={data?.day_sleep_diff ?? 0}
+                previous_day={data.previous_day}
                 units="h"
                 setMetric={() => setLogMetric("Sleep")}
               />
@@ -253,6 +283,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 value={data?.day_water ?? 0}
                 icon={<IoIosWater fill="#5555FF" />}
                 trend={data?.day_water_diff ?? 0}
+                previous_day={data.previous_day}
                 units="L"
                 setMetric={() => setLogMetric("Water")}
               />
@@ -262,29 +293,34 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 title="Weight"
                 action={() => setLogMetric("Weight")}
                 content={
-                  <div>
-                    <h2>Amazon Quicksight visual to be implemented</h2>
-                    <h3>Your Logged Weight: {data?.day_weight} Kg</h3>
+                  <div className="w-full h-[300px] sm:h-[400px] xl:h-[500px] overflow-hidden rounded-lg">
+                    {weightEmbedUrl ? (
+                      <iframe
+                        title="Weight Visual"
+                        src={weightEmbedUrl}
+                        className="w-full h-full border-none"
+                        style={{ minHeight: "300px" }}
+                      />
+                    ) : (
+                      <div className="text-center text-sm text-gray-400">Loading weight visual...</div>
+                    )}
                   </div>
                 }
               />
               <ContentCard
                 title="Macros"
                 content={
-                  <div>
-                    <h2>Amazon Quicksight visual to be implemented</h2>
-                    <h3>Your Macros Today:</h3>
-                    <div className="flex font-bold gap-2 ">
-                      <span className="text-[#FFA500]">
-                        {getTotalMacros(Consumption).protein}g protein
-                      </span>
-                      <span className="text-[#007AFF]">
-                        {getTotalMacros(Consumption).carb}g carbs
-                      </span>
-                      <span className="text-[#AF52DE]">
-                        {getTotalMacros(Consumption).fat}g fat
-                      </span>
-                    </div>
+                  <div className="w-full h-[300px] sm:h-[400px] xl:h-[500px] overflow-hidden rounded-lg">
+                    {macrosEmbedUrl ? (
+                      <iframe
+                        title="Macros Visual"
+                        src={macrosEmbedUrl}
+                        className="w-full h-full border-none"
+                        style={{ minHeight: "300px" }}
+                      />
+                    ) : (
+                      <div className="text-center text-sm text-gray-400">Loading macros visual...</div>
+                    )}
                   </div>
                 }
               />

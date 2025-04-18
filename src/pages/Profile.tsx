@@ -86,6 +86,7 @@ const Profile: React.FC = () => {
       setGender(userData.gender ? "Male" : "Female");
       setHeight(userData.height.toString());
       setWeight(userData.weight.toString());
+      setNotificationToggle(userData.notification_subscription);
     } catch (error) {
       console.error("Failed to fetch user data:", error);
     }
