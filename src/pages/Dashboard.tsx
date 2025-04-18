@@ -19,6 +19,7 @@ import {
 interface DashboardProps {
   Page?: string;
 }
+const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 //removes unwanted properties from data to send to api
 const filterData = (data: any): DashboardDataProps => {
@@ -41,8 +42,17 @@ const filterData = (data: any): DashboardDataProps => {
     day_sleep_diff: data.day_sleep_diff ?? 0,
     day_steps_diff: data.day_steps_diff ?? 0,
     day_water_diff: data.day_water_diff ?? 0,
-    previous_day: data.previous_day ?? 'previous day',
+    previous_day: data.previous_day ?? "previous day",
   };
+};
+const filterWorkout = (dataArray: any[]): WorkoutPlanProps[] => {
+  return dataArray.map((data) => ({
+    workout_title: data.workoutcard_title,
+    status: false,
+    exercises: Array.isArray(data.workoutcard_content?.exercises)
+      ? data.workoutcard_content.exercises
+      : [],
+  }));
 };
 
 function getPreviousDayLabel(previousDate: string): string {
@@ -73,7 +83,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
   trend,
   units,
   setMetric,
-  previous_day=null
+  previous_day = null,
 }) => {
   return (
     <div
@@ -96,7 +106,6 @@ const MetricCard: React.FC<MetricCardProps> = ({
       >
         {trend > 0 ? "↑ " : "↓ "}
         {Math.abs(trend)}% from {getPreviousDayLabel(previous_day ?? "")}
-
       </div>
     </div>
   );
@@ -158,37 +167,31 @@ const Dashboard: React.FC<DashboardProps> = () => {
     macros: { protein: 0.0, carb: 0.0, fat: 0.0 },
     calories: 0.0,
   });
-  const [logPlan, setLogPlan] = useState(false);
+  const [logPlan, setLogPlan] = useState<WorkoutPlanProps>({
+    workout_title: "",
+    exercises: [],
+    status: false,
+  });
   const navigate = useNavigate();
   const [userDetails, setUserDetails] =
     useState<FetchUserAttributesOutput | null>(null);
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
+  const [Workouts, setWorkouts] = useState<WorkoutPlanProps[]>(
+    filterWorkout([])
+  );
   const [weightEmbedUrl, setWeightEmbedUrl] = useState("");
   const [macrosEmbedUrl, setMacrosEmbedUrl] = useState("");
-
-  function getTotalMacros(arr: FoodItemProps[]): {
-    protein: number;
-    carb: number;
-    fat: number;
-  } {
-    const total = { protein: 0, carb: 0, fat: 0 };
-    arr.forEach((item) => {
-      total.protein += item.macros.protein;
-      total.fat += item.macros.fat;
-      total.carb += item.macros.carb;
-    });
-    return total;
-  }
 
   useEffect(() => {
     async function fetchData() {
       const hold = await fetchUserAttributes();
+      console.log(hold);
       setUserDetails(hold);
-  
+
       const today = new Date().toLocaleDateString("en-CA", {
         timeZone: "America/New_York",
       });
-  
+
       try {
         const result = await apiRequest("GET_HEALTH_DATA", {
           queryParams: { date: today },
@@ -197,47 +200,51 @@ const Dashboard: React.FC<DashboardProps> = () => {
       } catch {
         setData(filterData({}));
       }
+
+      try {
+        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
+          queryParams: {},
+        });
+        const dayofweek = days[new Date().getDay()];
+        setWorkouts(filterWorkout(result2.data[dayofweek]));
+        console.log("WEEKLY PLAN", filterWorkout(result2.data[dayofweek]));
+      } catch {
+        /*NOOP*/
+      }
     }
-  
+
     async function fetchEmbedUrls() {
       try {
-        const response = await apiRequest("QUICKSIGHT")
+        const response = await apiRequest("QUICKSIGHT");
         setWeightEmbedUrl(response.weightEmbedUrl);
         setMacrosEmbedUrl(response.macrosEmbedUrl);
       } catch (err) {
         console.error("Failed to load QuickSight iframe URLs:", err);
       }
     }
-  
+
     fetchEmbedUrls();
     fetchData();
   }, []);
-  
-  
 
   async function updateDB(update: DashboardDataProps) {
     const today = new Date().toLocaleDateString("en-CA", {
       timeZone: "America/New_York",
     });
-  
-    // Destructure and omit all derived fields
-    const {
-      day_calories_diff,
-      day_sleep_diff,
-      day_steps_diff,
-      day_water_diff,
-      previous_day,
-      ...cleanUpdate
-    } = update;
-  
+
+    // Destructure and omit the diff fields
+    const cleanUpdate = { ...update } as any;
+    delete cleanUpdate.day_calories_diff;
+    delete cleanUpdate.day_steps_diff;
+    delete cleanUpdate.day_sleep_diff;
+    delete cleanUpdate.day_water_diff;
     await apiRequest("UPDATE_HEALTH_DATA", {
       queryParams: { date: today },
       body: cleanUpdate,
     });
   }
-  
+
   const Consumption: FoodItemProps[] | undefined = data?.day_food;
-  const Workouts: WorkoutPlanProps[] | undefined = data?.day_workout_plan;
   return (
     <div className="h-full w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
@@ -302,7 +309,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                         style={{ minHeight: "300px" }}
                       />
                     ) : (
-                      <div className="text-center text-sm text-gray-400">Loading weight visual...</div>
+                      <div className="text-center text-sm text-gray-400">
+                        Loading weight visual...
+                      </div>
                     )}
                   </div>
                 }
@@ -319,7 +328,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                         style={{ minHeight: "300px" }}
                       />
                     ) : (
-                      <div className="text-center text-sm text-gray-400">Loading macros visual...</div>
+                      <div className="text-center text-sm text-gray-400">
+                        Loading macros visual...
+                      </div>
                     )}
                   </div>
                 }
@@ -398,12 +409,12 @@ const Dashboard: React.FC<DashboardProps> = () => {
                         key={`item-${index}`}
                         className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg "
                       >
-                        <div className="flex-1 flex text-[14px] sm:text-[16px]">
+                        <div className="flex-1 flex text-[14px] sm:text-[16px] ">
                           <span className="font-semibold flex-1">
                             {workout.workout_title}
                           </span>
                           <span
-                            className={`flex-1 ${
+                            className={`w-[115px] ${
                               workout.status //=== "Completed"
                                 ? "text-green-600"
                                 : "text-red-500"
@@ -413,20 +424,20 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           </span>
                           <span
                             className=" flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
-                            onClick={() => setLogPlan(true)}
+                            onClick={() => setLogPlan(workout)}
                           >
                             Log Plan
                           </span>
                         </div>
                         <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px]">
-                          {workout.exercises.map((item, index) => (
+                          {workout.exercises?.map((item, index) => (
                             <div
                               key={`item-${index}`}
                               className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2"
                             >
                               <span className="flex-1">{item.title}</span>
                               <span className="">
-                                {item.set_count}{" "}
+                                {item.sets}{" "}
                                 {workout.workout_title === "cardio" //Wrong
                                   ? "minutes"
                                   : "sets"}
@@ -658,26 +669,104 @@ const Dashboard: React.FC<DashboardProps> = () => {
         </div>
       )}
 
-      {logPlan && (
+      {logPlan.workout_title != "" && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-2 rounded-2xl shadow-lg w-[300px] h-[200px] text-center relative ">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[450px] h-[400px] text-center relative ">
             <div className="flex justify-end h-[30px] items-start">
               <button
                 title="Close"
-                onClick={() => setLogPlan(false)}
+                onClick={() =>
+                  setLogPlan({
+                    workout_title: "",
+                    exercises: [],
+                    status: false,
+                  })
+                }
                 className=" text-red-500  hover:underline hover:cursor-pointer "
               >
                 Close
               </button>
             </div>
             <div className="flex flex-col gap-2 items-center">
-              <h2 className="text-2xl font-bold">Log Today's {logMetric}</h2>
-
-              <input
-                type="number"
-                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter a number"
-              />
+              <h2 className="text-2xl font-bold">
+                Log "{logPlan.workout_title}"
+              </h2>
+              <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px] w-full">
+                {logPlan.exercises?.map((item, index) => (
+                  <div
+                    key={`item-${index}`}
+                    className="text-[#FFA500] bg-[#FCF2E9] h-[50px] flex items-center rounded-lg px-2 justify-between "
+                  >
+                    <span className="w-[150px] text-left">{item.title}</span>
+                    <div>
+                      <span className="w-[50px]">Wt: </span>
+                      <input
+                        onChange={(e) =>
+                          setLogPlan({
+                            ...logPlan,
+                            exercises: logPlan.exercises.map((exEdit, idx) => {
+                              if (
+                                idx ===
+                                logPlan.exercises.findIndex(
+                                  (edit) => edit.title === item.title
+                                )
+                              ) {
+                                return {
+                                  ...exEdit,
+                                  weight: Number(e.target.value),
+                                };
+                              } else {
+                                return {
+                                  ...exEdit,
+                                };
+                              }
+                            }),
+                          })
+                        }
+                        type="number"
+                        className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-[65px]"
+                        placeholder="###"
+                      />
+                    </div>
+                    <div>
+                      <span className="w-[50px]">Reps: </span>
+                      <input
+                        onChange={(e) =>
+                          setLogPlan({
+                            ...logPlan,
+                            exercises: logPlan.exercises.map((exEdit, idx) => {
+                              if (
+                                idx ===
+                                logPlan.exercises.findIndex(
+                                  (edit) => edit.title === item.title
+                                )
+                              ) {
+                                return {
+                                  ...exEdit,
+                                  reps: Number(e.target.value),
+                                };
+                              } else {
+                                return {
+                                  ...exEdit,
+                                };
+                              }
+                            }),
+                          })
+                        }
+                        type="number"
+                        className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-[65px]"
+                        placeholder="###"
+                      />
+                    </div>
+                    <span className="w-[50px]">
+                      {item.sets}{" "}
+                      {logPlan.workout_title === "cardio" //Wrong
+                        ? "minutes"
+                        : "sets"}
+                    </span>
+                  </div>
+                ))}
+              </div>
               <button
                 title="Close"
                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
