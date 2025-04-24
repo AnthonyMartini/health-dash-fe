@@ -18,8 +18,8 @@ export type SetProps = {
 
 export type ExerciseProps = {
   title: string;
-  sets: number;
-  reps: number;
+  set_count: number;
+  sets: SetProps[];
   weight: number;
 };
 

@@ -19,6 +19,7 @@ const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 //removes unwanted properties from data to send to api
 const filterData = (data: any): DashboardDataProps => {
+  console.log("Filter Data input", data.day_workout_plan);
   return {
     day_calories: data.day_calories ?? 0,
     day_steps: data.day_steps ?? 0,
@@ -41,12 +42,21 @@ const filterData = (data: any): DashboardDataProps => {
     previous_day: data.previous_day ?? "previous day",
   };
 };
+//If workout is not in health data but is in weekly plan, we pull it from weekly plan
 const filterWorkout = (dataArray: any[]): WorkoutPlanProps[] => {
   return dataArray.map((data) => ({
     workout_title: data.workoutcard_title,
     status: false,
     exercises: Array.isArray(data.workoutcard_content?.exercises)
-      ? data.workoutcard_content.exercises
+      ? data.workoutcard_content.exercises.map((exercise: any) => ({
+          title: exercise.title,
+          set_count: exercise.sets,
+          sets: Array.from({ length: exercise.sets }, (_, i) => ({
+            set: i + 1,
+            weight: 0,
+            reps: 0,
+          })), // Initialize sets with one empty set
+        })) // Initialize weight to 0
       : [],
   }));
 };
@@ -172,9 +182,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const navigate = useNavigate();
 
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
-  const [Workouts, setWorkouts] = useState<WorkoutPlanProps[]>(
-    filterWorkout([])
-  );
   const [weightEmbedUrl, setWeightEmbedUrl] = useState("");
   const [macrosEmbedUrl, setMacrosEmbedUrl] = useState("");
 
@@ -184,24 +191,50 @@ const Dashboard: React.FC<DashboardProps> = () => {
         timeZone: "America/New_York",
       });
 
+      // Step 1: Get today's health data
+      let filteredData;
       try {
         const result = await apiRequest("GET_HEALTH_DATA", {
           queryParams: { date: today },
         });
-        setData(filterData(result.data));
+        console.log("Fetched today's workouts:", result.data.day_workout_plan);
+        filteredData = filterData(result.data);
       } catch {
-        setData(filterData({}));
+        filteredData = filterData({});
       }
 
+      // Set the base data
+      setData(filteredData);
+
+      // Step 2: Then get weekly plan, after we have filteredData
       try {
         const result2 = await apiRequest("GET_WEEKLY_PLAN", {
           queryParams: {},
         });
+
         const dayofweek = days[new Date().getDay()];
-        setWorkouts(filterWorkout(result2.data[dayofweek]));
-        console.log("WEEKLY PLAN", filterWorkout(result2.data[dayofweek]));
-      } catch {
-        /*NOOP*/
+        const workouts = filterWorkout(result2.data[dayofweek]);
+
+        const missingWorkouts = workouts.filter(
+          (workout) =>
+            !filteredData.day_workout_plan.find(
+              (existing) => existing.workout_title === workout.workout_title
+            )
+        );
+
+        console.log("Missing workouts:", missingWorkouts);
+
+        setData({
+          ...filteredData,
+          day_workout_plan: [
+            ...filteredData.day_workout_plan,
+            ...missingWorkouts,
+          ],
+        });
+
+        console.log("WEEKLY PLAN", workouts);
+      } catch (err) {
+        console.error("Failed to fetch weekly plan", err);
       }
     }
 
@@ -219,6 +252,46 @@ const Dashboard: React.FC<DashboardProps> = () => {
     fetchData();
   }, []);
 
+  //Update LogWorkout object when user changes weight or reps
+  function updateLogWorkout(
+    exerciseIndex: number,
+    setIndex: number,
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "weight" | "reps"
+  ) {
+    setLogPlan({
+      ...logPlan,
+      exercises: logPlan.exercises.map((exEdit, idx) => {
+        if (idx === exerciseIndex) {
+          return {
+            ...exEdit,
+            sets: exEdit.sets.map((setEdit, setIdx) => {
+              if (setIdx === setIndex) {
+                if (field === "reps") {
+                  return {
+                    ...setEdit,
+                    reps: Number(e.target.value),
+                  };
+                } else {
+                  return {
+                    ...setEdit,
+                    weight: Number(e.target.value),
+                  };
+                }
+              } else {
+                return setEdit;
+              }
+            }),
+          };
+        } else {
+          return {
+            ...exEdit,
+          };
+        }
+      }),
+    });
+  }
+
   async function updateDB(update: DashboardDataProps) {
     const today = new Date().toLocaleDateString("en-CA", {
       timeZone: "America/New_York",
@@ -226,10 +299,13 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
     // Destructure and omit the diff fields
     const cleanUpdate = { ...update } as any;
+
     delete cleanUpdate.day_calories_diff;
     delete cleanUpdate.day_steps_diff;
     delete cleanUpdate.day_sleep_diff;
     delete cleanUpdate.day_water_diff;
+    delete cleanUpdate.previous_day;
+    console.log("clean update", cleanUpdate);
     await apiRequest("UPDATE_HEALTH_DATA", {
       queryParams: { date: today },
       body: cleanUpdate,
@@ -238,7 +314,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   const Consumption: FoodItemProps[] | undefined = data?.day_food;
   return (
-    <div className="h- w-full flex md:flex-row flex-col ">
+    <div className="h-full w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-50/90 overflow-y-scroll">
         <div>
@@ -396,7 +472,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 action={() => navigate("/workout-plan")}
                 content={
                   <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2 ">
-                    {Workouts?.map((workout, index) => (
+                    {data.day_workout_plan?.map((workout, index) => (
                       <div
                         key={`item-${index}`}
                         className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg "
@@ -429,7 +505,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                             >
                               <span className="flex-1">{item.title}</span>
                               <span className="">
-                                {item.sets}{" "}
+                                {item.set_count}{" "}
                                 {workout.workout_title === "cardio" //Wrong
                                   ? "minutes"
                                   : "sets"}
@@ -663,7 +739,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
       {logPlan.workout_title != "" && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-2 rounded-2xl shadow-lg w-[450px] h-[400px] text-center relative ">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[450px] max-h-[700px] text-center relative  ">
             <div className="flex justify-end h-[30px] items-start">
               <button
                 title="Close"
@@ -683,87 +759,113 @@ const Dashboard: React.FC<DashboardProps> = () => {
               <h2 className="text-2xl font-bold">
                 Log "{logPlan.workout_title}"
               </h2>
-              <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px] w-full">
-                {logPlan.exercises?.map((item, index) => (
-                  <div
-                    key={`item-${index}`}
-                    className="text-[#FFA500] bg-[#FCF2E9] h-[50px] flex items-center rounded-lg px-2 justify-between "
-                  >
-                    <span className="w-[150px] text-left">{item.title}</span>
-                    <div>
-                      <span className="w-[50px]">Wt: </span>
-                      <input
-                        onChange={(e) =>
-                          setLogPlan({
-                            ...logPlan,
-                            exercises: logPlan.exercises.map((exEdit, idx) => {
-                              if (
-                                idx ===
-                                logPlan.exercises.findIndex(
-                                  (edit) => edit.title === item.title
-                                )
-                              ) {
-                                return {
-                                  ...exEdit,
-                                  weight: Number(e.target.value),
-                                };
-                              } else {
-                                return {
-                                  ...exEdit,
-                                };
-                              }
-                            }),
-                          })
-                        }
-                        type="number"
-                        className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-[65px]"
-                        placeholder="###"
-                      />
+              <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px] w-full max-h-[600px] overflow-y-auto">
+                {logPlan.exercises?.map((item, exerciseIndex) => (
+                  <div className="text-[#FFA500] bg-[#FCF2E9] rounded-lg p-2">
+                    <div
+                      key={`item-${exerciseIndex}`}
+                      className=" h-[25px]  flex items-center justify-between "
+                    >
+                      <span className="w-[150px] text-left">{item.title}</span>
+
+                      <span className="w-[50px]">
+                        {item.set_count}{" "}
+                        {logPlan.workout_title === "cardio" //Wrong
+                          ? "minutes"
+                          : "sets"}
+                      </span>
                     </div>
-                    <div>
-                      <span className="w-[50px]">Reps: </span>
-                      <input
-                        onChange={(e) =>
-                          setLogPlan({
-                            ...logPlan,
-                            exercises: logPlan.exercises.map((exEdit, idx) => {
-                              if (
-                                idx ===
-                                logPlan.exercises.findIndex(
-                                  (edit) => edit.title === item.title
-                                )
-                              ) {
-                                return {
-                                  ...exEdit,
-                                  reps: Number(e.target.value),
-                                };
-                              } else {
-                                return {
-                                  ...exEdit,
-                                };
-                              }
-                            }),
-                          })
-                        }
-                        type="number"
-                        className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 w-[65px]"
-                        placeholder="###"
-                      />
+                    <div className=" pl-4 text-left gap-2 flex flex-col">
+                      {item.sets.map((set, setIndex) => (
+                        <div className="flex flex-row gap-2 items-center h-[40px]  justify-between px-2 rounded-lg bg-[#fffbf9]">
+                          <span>Set {set.set}:</span>
+                          <div>
+                            <span className="w-[50px]">Weight: </span>
+                            <input
+                              defaultValue={set.weight}
+                              onChange={(e) => {
+                                updateLogWorkout(
+                                  exerciseIndex,
+                                  setIndex,
+                                  e,
+                                  "weight"
+                                );
+                                console.log(logPlan);
+                              }}
+                              type="number"
+                              className="border border-gray-300 p-2 rounded-md focus:outline-none  w-[65px] h-[30px] bg-white text-black"
+                              placeholder="###"
+                            />
+                          </div>
+                          <div>
+                            <span className="w-[50px]">Reps: </span>
+                            <input
+                              defaultValue={set.reps}
+                              onChange={(e) => {
+                                updateLogWorkout(
+                                  exerciseIndex,
+                                  setIndex,
+                                  e,
+                                  "reps"
+                                );
+                                console.log(logPlan);
+                              }}
+                              type="number"
+                              className="border border-gray-300 p-2 rounded-md focus:outline-none  bg-white text-black w-[65px] h-[30px]"
+                              placeholder="###"
+                            />
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <span className="w-[50px]">
-                      {item.sets}{" "}
-                      {logPlan.workout_title === "cardio" //Wrong
-                        ? "minutes"
-                        : "sets"}
-                    </span>
                   </div>
                 ))}
+              </div>
+              <div className="p-4">
+                <label className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={logPlan.status}
+                    onChange={(e) => {
+                      setLogPlan((prev) => ({
+                        ...prev,
+                        status: e.target.checked,
+                      }));
+                    }}
+                    className="accent-blue-600"
+                  />
+                  <span>Workout Completed</span>
+                </label>
               </div>
               <button
                 title="Close"
                 className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
+                onClick={() => {
+                  console.log("Log PLan", logPlan);
+                  const missingWorkouts = data.day_workout_plan.filter(
+                    (workout) => workout.workout_title !== logPlan.workout_title
+                  );
+                  console.log();
+                  setData((prev) => {
+                    const updatedData: DashboardDataProps = {
+                      ...prev,
+
+                      day_workout_plan: [...missingWorkouts, logPlan],
+                    };
+
+                    // Call API immediately after updating state
+                    updateDB(updatedData);
+                    setLogPlan({
+                      workout_title: "",
+                      exercises: [],
+                      status: false,
+                    });
+
+                    return updatedData; // Ensure the new state is returned
+                  });
+                }}
               >
-                Submit
+                Log
               </button>
             </div>
           </div>

@@ -13,6 +13,7 @@ type GetuserProps = {
   gender: boolean;
   height: string;
   weight: string;
+  error: boolean;
 };
 type SetUserProps = {
   user_profile_picture_url: string;
@@ -43,6 +44,7 @@ const UserContext = createContext<UserContextType>({
     gender: true,
     height: "",
     weight: "",
+    error: false,
   },
   updateUser: () => {},
 });
@@ -60,6 +62,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     gender: true,
     height: "",
     weight: "",
+    error: false,
   });
 
   const updateUser = (user: SetUserProps) => {
@@ -77,8 +80,24 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         console.log("Fetched user data:", response);
 
         const userData = response.data;
-        setUser(userData);
-      } catch (error) {
+        setUser({ ...userData, error: false });
+      } catch (error: any) {
+        if (error.message === "404") {
+          setUser({
+            error: true,
+            PK: "",
+            user_profile_picture_url: "",
+            nickname: "",
+            first_name: "",
+            last_name: "",
+            email: "",
+            phone: "",
+            birthdate: "",
+            gender: true,
+            height: "",
+            weight: "",
+          });
+        }
         console.error("Error fetching user data:", error);
       }
     };
