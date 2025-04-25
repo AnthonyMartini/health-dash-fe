@@ -503,17 +503,19 @@ const WorkoutPlan: React.FC = () => {
                         <input
                           type="number"
                           placeholder="###"
-                          className="bg-white border border-gray-700 p-2 w-16 rounded text-center"
-                          value={exercise.sets}
-                          onChange={(e) =>
+                          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none bg-white border border-gray-700 p-2 w-16 rounded text-center"
+                          value={exercise.sets ? exercise.sets : ""}
+                          onChange={(e) => {
+                            let value = Number(e.target.value);
+                            if (value < 0 || value > 15) {
+                              value = 0; // Reset to 1 if out of range
+                            }
                             setExercises(
                               exercises.map((ex, i) =>
-                                i === index
-                                  ? { ...ex, sets: Number(e.target.value) }
-                                  : ex
+                                i === index ? { ...ex, sets: value } : ex
                               )
-                            )
-                          }
+                            );
+                          }}
                         />
                       </div>
                       <button

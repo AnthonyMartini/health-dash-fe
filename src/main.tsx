@@ -14,6 +14,7 @@ import { Amplify } from "aws-amplify";
 import outputs from "../amplify_outputs.json";
 import "@aws-amplify/ui-react/styles.css";
 import APPIconSVG from "./assets/AppIcon.svg";
+import { UserProvider } from "./GlobalContext.tsx";
 
 Amplify.configure(outputs);
 
@@ -192,6 +193,8 @@ const components = {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <Authenticator signUpAttributes={["picture"]} components={components}>
-    <App />
+    <UserProvider>
+      <App />
+    </UserProvider>
   </Authenticator>
 );

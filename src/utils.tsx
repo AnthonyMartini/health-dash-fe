@@ -18,8 +18,9 @@ export type SetProps = {
 
 export type ExerciseProps = {
   title: string;
-  sets: SetProps[];
   set_count: number;
+  sets: SetProps[];
+  weight: number;
 };
 
 export type WorkoutPlanProps = {
@@ -37,9 +38,9 @@ export type DashboardDataProps = {
   day_water: number;
   day_sleep: number;
   day_weight: number;
-  day_calories_diff: number,
-  day_steps_diff: number,
-  day_sleep_diff: number,
-  day_water_diff: number,
-  previous_day: string,
+  day_calories_diff: number;
+  day_steps_diff: number;
+  day_sleep_diff: number;
+  day_water_diff: number;
+  previous_day: string;
 };

@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { IoIosNotifications } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
 import APPIconSVG from "../assets/AppIcon.svg";
 import DefaultAvatar from "../assets/defaultAvatar.png";
-import { getStoredUserInfo } from "../utils/authUtils";
+import { useUser } from "../GlobalContext.tsx";
 
 interface NavBarHeaderProps {
   logoText?: string;
@@ -12,28 +12,13 @@ interface NavBarHeaderProps {
   onProfileClick?: () => void;
 }
 
-
 const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   //onNotificationClick = () => console.log("Notifications clicked"),
   onProfileClick = () => console.log("Profile clicked"),
 }) => {
+  const { user } = useUser(); // grab user data from context
   const navigate = useNavigate();
   const { signOut } = useAuthenticator();
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
-  const [isLoadingImage, setIsLoadingImage] = useState(true);
-  
-  useEffect(() => {
-    const loadProfilePicture = () => {
-      const storedUser = getStoredUserInfo();
-      const url = storedUser?.user_profile_picture_url || null;
-      setProfilePicture(url);
-      setIsLoadingImage(false);
-      console.log("Profile Picture URL:", url);
-    };
-  
-    loadProfilePicture();
-  }, []);
-
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   return (
     <div className="z-10 w-full h-[95px] p-6 flex items-center justify-between shadow-[0_2px_6px_rgba(13,26,38,0.15)] sticky top-0">
@@ -53,7 +38,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
           onMouseLeave={() => setShowProfileMenu(false)}
         >
           <img
-            src={isLoadingImage ? DefaultAvatar : profilePicture || DefaultAvatar}
+            src={user.user_profile_picture_url || DefaultAvatar}
             alt="Profile"
             className="w-11 h-11 cursor-pointer rounded-full hover:opacity-90"
             onClick={onProfileClick}

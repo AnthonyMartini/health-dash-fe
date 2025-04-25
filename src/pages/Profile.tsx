@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FaArrowLeft,
@@ -16,6 +16,8 @@ import { IoIosWarning } from "react-icons/io";
 //import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
 import { apiRequest, ApiRoute } from "../utils/APIService";
+
+import { useUser } from "../GlobalContext.tsx";
 
 // === Public VAPID key ===
 const VAPID_PUBLIC_KEY =
@@ -36,6 +38,7 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
+  const { user, updateUser } = useUser(); // grab user data from context
 
   // State for toggles
   const [notificationToggle, setNotificationToggle] = useState(false);
@@ -43,18 +46,38 @@ const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
 
   // ✅ State for user data
-  const [userId, setUserId] = useState<string | null>(null);
-  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [profilePicture, setProfilePicture] = useState<string>(
+    user.user_profile_picture_url || "https://www.google.com"
+  );
+
   const [newProfileImage, setNewProfileImage] = useState<File | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
-  const [firstName, setFirstName] = useState<string | null>(null);
-  const [lastName, setLastName] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
-  const [phone, setPhone] = useState<string | null>(null);
-  const [birthDate, setBirthDate] = useState<string | null>(null);
-  const [gender, setGender] = useState<string | null>(null);
-  const [height, setHeight] = useState<string | null>(null);
-  const [weight, setWeight] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(user.nickname);
+  const [firstName, setFirstName] = useState<string | null>(user.first_name);
+  const [lastName, setLastName] = useState<string | null>(user.last_name);
+  const [email, setEmail] = useState<string | null>(user.email);
+  const [phone, setPhone] = useState<string | null>(user.phone);
+  const [birthDate, setBirthDate] = useState<string | null>(user.birthdate);
+  const [gender, setGender] = useState<string | null>(
+    user.gender ? "Male" : "Female"
+  );
+  const [height, setHeight] = useState<string | null>(user.height);
+  const weight = user.weight;
+
+  const fetchUserData = () => {
+    setProfilePicture(user.user_profile_picture_url);
+    setUsername(user.nickname);
+    setFirstName(user.first_name);
+    setLastName(user.last_name);
+    setEmail(user.email);
+    setPhone(user.phone);
+    setBirthDate(user.birthdate);
+    setGender(user.gender ? "Male" : "Female");
+    setHeight(user.height);
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, [user]);
 
   // ✅ State for validation errors
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -64,38 +87,6 @@ const Profile: React.FC = () => {
   // State for popups
   const [showResetPopup, setShowResetPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-
-  // ✅ Fetch user data from API
-  const fetchUserData = async () => {
-    try {
-      const response = await apiRequest<{ data: any }>("GET_USER" as ApiRoute);
-      console.log("Fetched user data:", response);
-
-      const userData = response.data;
-
-      setUserId(userData.PK);
-      setUsername(userData.nickname);
-      setFirstName(userData.first_name);
-      setLastName(userData.last_name);
-      setProfilePicture(
-        userData.user_profile_picture_url || "https://www.google.com"
-      );
-      setEmail(userData.email);
-      setPhone(userData.phone);
-      setBirthDate(userData.birthdate);
-      setGender(userData.gender ? "Male" : "Female");
-      setHeight(userData.height.toString());
-      setWeight(userData.weight.toString());
-      setNotificationToggle(userData.notification_subscription);
-    } catch (error) {
-      console.error("Failed to fetch user data:", error);
-    }
-  };
-
-  // 📌 Call the fetchUserData when the component loads
-  useEffect(() => {
-    fetchUserData();
-  }, []);
 
   // ✅ Email validation function
   const validateEmail = (value: string) => {
@@ -227,16 +218,11 @@ const Profile: React.FC = () => {
 
         console.log("Request Body:", updatedUserData);
 
-        // ✅ Update state
-        setUsername(updatedUserData.nickname);
-        setFirstName(updatedUserData.first_name);
-        setLastName(updatedUserData.last_name);
-        setProfilePicture(updatedUserData.user_profile_picture_url);
-        setEmail(updatedUserData.email);
-        setPhone(updatedUserData.phone);
-        setBirthDate(updatedUserData.birthdate);
-        setGender(updatedUserData.gender ? "Male" : "Female");
-        setHeight(updatedUserData.height.toString());
+        // Updates the global context of user data
+        updateUser({
+          ...updatedUserData,
+          height: height || "0",
+        });
         setNewProfileImage(null); // Clear temp image
 
         // ✅ API call
@@ -255,7 +241,7 @@ const Profile: React.FC = () => {
 
   const handleCancel = () => {
     setIsEditing(false);
-    fetchUserData(); // ✅ Reset to original values
+    fetchUserData();
   };
 
   const handleToggleNotification = async () => {
@@ -443,7 +429,7 @@ const Profile: React.FC = () => {
             <DataRow
               icon={<FaRegIdCard />}
               label="User ID"
-              value={userId || ""}
+              value={user.PK || ""}
               isBold
             />
             <DataRow
