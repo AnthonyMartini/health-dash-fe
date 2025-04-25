@@ -259,6 +259,14 @@ const Dashboard: React.FC<DashboardProps> = () => {
     e: React.ChangeEvent<HTMLInputElement>,
     field: "weight" | "reps"
   ) {
+    let value = Number(e.target.value);
+
+    // Normalize invalid values to 0
+    if (field === "reps" && (value < 0 || value > 100)) {
+      value = 0;
+    } else if (field === "weight" && (value < 0 || value > 1000)) {
+      value = 0;
+    }
     setLogPlan({
       ...logPlan,
       exercises: logPlan.exercises.map((exEdit, idx) => {
@@ -270,12 +278,12 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 if (field === "reps") {
                   return {
                     ...setEdit,
-                    reps: Number(e.target.value),
+                    reps: value,
                   };
                 } else {
                   return {
                     ...setEdit,
-                    weight: Number(e.target.value),
+                    weight: value,
                   };
                 }
               } else {
@@ -363,43 +371,47 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 setMetric={() => setLogMetric("Water")}
               />
             </div>
-            <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
+            <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap">
               <ContentCard
                 title="Weight"
                 action={() => setLogMetric("Weight")}
                 content={
-                  <div className="w-full h-[300px] sm:h-[400px] xl:h-[500px] overflow-hidden rounded-lg">
-                    {weightEmbedUrl ? (
-                      <iframe
-                        title="Weight Visual"
-                        src={weightEmbedUrl}
-                        className="w-full h-full border-none"
-                        style={{ minHeight: "300px" }}
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-gray-400">
-                        Loading weight visual...
-                      </div>
-                    )}
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className=" border-2 border-gray-200 w-[365px] h-[320px] overflow-hidden rounded-lg">
+                      {weightEmbedUrl ? (
+                        <iframe
+                          title="Weight Visual"
+                          src={weightEmbedUrl}
+                          className="w-full h-full border-none "
+                          style={{}}
+                        />
+                      ) : (
+                        <div className="text-center text-sm text-gray-400">
+                          Loading weight visual...
+                        </div>
+                      )}
+                    </div>
                   </div>
                 }
               />
               <ContentCard
                 title="Macros"
                 content={
-                  <div className="w-full h-[300px] sm:h-[400px] xl:h-[500px] overflow-hidden rounded-lg">
-                    {macrosEmbedUrl ? (
-                      <iframe
-                        title="Macros Visual"
-                        src={macrosEmbedUrl}
-                        className="w-full h-full border-none"
-                        style={{ minHeight: "300px" }}
-                      />
-                    ) : (
-                      <div className="text-center text-sm text-gray-400">
-                        Loading macros visual...
-                      </div>
-                    )}
+                  <div className="w-full h-full flex items-center justify-center">
+                    <div className="border-2 border-gray-200 w-[365px] h-[320px] overflow-hidden rounded-lg">
+                      {macrosEmbedUrl ? (
+                        <iframe
+                          title="Macros Visual"
+                          src={macrosEmbedUrl}
+                          className="w-full h-full border-none"
+                          style={{ minHeight: "300px" }}
+                        />
+                      ) : (
+                        <div className="text-center text-sm text-gray-400">
+                          Loading macros visual...
+                        </div>
+                      )}
+                    </div>
                   </div>
                 }
               />
@@ -539,9 +551,31 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
               <input
                 type="number"
-                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter a number"
-                onChange={(e) => setLogMetricValue(Number(e.target.value))}
+                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder={`Number from 0 - ${
+                  logMetric === "Calories"
+                    ? "10000"
+                    : logMetric === "Steps"
+                    ? "30000"
+                    : "15"
+                }`}
+                value={logMetricValue ? logMetricValue : ""}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  if (
+                    value >= 0 &&
+                    value <=
+                      (logMetric === "Calories"
+                        ? 10000
+                        : logMetric === "Steps"
+                        ? 30000
+                        : 15)
+                  ) {
+                    setLogMetricValue(value);
+                  } else {
+                    setLogMetricValue(0.0);
+                  }
+                }}
               />
               <button
                 title="Submit"
@@ -620,10 +654,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 <div className="flex flex-col w-[80px] text-[#FFA500]">
                   <label className="text-sm">Protein</label>
                   <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    type="number"
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
                     onChange={(e) => {
                       setLogConsumptionValue((prev) => {
                         const updatedData = {
@@ -643,10 +675,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 <div className="flex flex-col w-[80px] text-[#007AFF]">
                   <label className="text-sm">Carbs</label>
                   <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    type="number"
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
                     onChange={(e) => {
                       setLogConsumptionValue((prev) => {
                         const updatedData = {
@@ -666,10 +696,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 <div className="flex flex-col w-[80px] text-[#AF52DE]">
                   <label className="text-sm">Fat</label>
                   <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    type="number"
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
                     onChange={(e) => {
                       setLogConsumptionValue((prev) => {
                         const updatedData = {
@@ -689,10 +717,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
                 <div className="flex flex-col w-[80px] text-gray-700">
                   <label className="text-sm">Calories</label>
                   <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    className="p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
+                    type="number"
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 w-full"
                     onChange={(e) => {
                       setLogConsumptionValue((prev) => {
                         const updatedData = {
@@ -782,7 +808,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           <div>
                             <span className="w-[50px]">Weight: </span>
                             <input
-                              defaultValue={set.weight}
+                              value={set.weight ? set.weight : ""}
                               onChange={(e) => {
                                 updateLogWorkout(
                                   exerciseIndex,
@@ -793,14 +819,14 @@ const Dashboard: React.FC<DashboardProps> = () => {
                                 console.log(logPlan);
                               }}
                               type="number"
-                              className="border border-gray-300 p-2 rounded-md focus:outline-none  w-[65px] h-[30px] bg-white text-black"
+                              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border border-gray-300 p-2 rounded-md focus:outline-none  w-[65px] h-[30px] bg-white text-black"
                               placeholder="###"
                             />
                           </div>
                           <div>
                             <span className="w-[50px]">Reps: </span>
                             <input
-                              defaultValue={set.reps}
+                              value={set.reps ? set.reps : ""}
                               onChange={(e) => {
                                 updateLogWorkout(
                                   exerciseIndex,
@@ -811,7 +837,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                                 console.log(logPlan);
                               }}
                               type="number"
-                              className="border border-gray-300 p-2 rounded-md focus:outline-none  bg-white text-black w-[65px] h-[30px]"
+                              className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none border border-gray-300 p-2 rounded-md focus:outline-none  bg-white text-black w-[65px] h-[30px]"
                               placeholder="###"
                             />
                           </div>
