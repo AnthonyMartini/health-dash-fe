@@ -165,12 +165,30 @@ const Profile: React.FC = () => {
 
   // Replace this with actual image upload logic (e.g. S3, backend)
   const uploadImageToServer = async (file: File): Promise<string> => {
-    // Simulate delay and return dummy URL for now
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(URL.createObjectURL(file)); // 👈 local preview URL — replace with your backend URL
-      }, 1000);
-    });
+    try {
+      // Step 1: Get presigned URL from backend via centralized API request
+      const { uploadUrl, fileUrl } = await apiRequest("UPLOAD_PFP", {
+        queryParams: { fileType: file.type },
+      });
+  
+      // Step 2: Upload directly to S3 using presigned URL
+      const uploadRes = await fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type,
+        },
+        body: file,
+      });
+  
+      if (!uploadRes.ok) {
+        throw new Error("Failed to upload image to S3");
+      }
+      
+      return fileUrl;
+    } catch (error) {
+      console.error("Upload failed:", error);
+      throw error;
+    }
   };
 
   // ✅ Handle Save

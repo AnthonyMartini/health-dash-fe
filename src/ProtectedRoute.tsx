@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest, ApiRoute } from "./utils/APIService";
+import { setStoredUserInfo } from "./utils/authUtils";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
@@ -8,13 +9,17 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     const checkUser = async () => {
+      let userData = null;
       try {
-        await apiRequest<{ data: any }>("GET_USER" as ApiRoute);
+        userData = await apiRequest<{ data: any }>("GET_USER" as ApiRoute);
       } catch (error: any) {
         if (error.message === "404") {
           navigate("/new-user");
         }
       } finally {
+        if (userData) {
+          setStoredUserInfo(userData); 
+        }
         setLoading(false);
       }
     };
