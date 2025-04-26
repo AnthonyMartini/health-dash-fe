@@ -3,7 +3,7 @@ import { fetchAuthSession } from "@aws-amplify/auth";
 
 const BASE_URL =
   "https://34pdw0bjyi.execute-api.us-east-1.amazonaws.com/default/api";
-//
+  // "http://localhost:8000/api";
 export const API_METHODS = {
   GET: "GET",
   POST: "POST",
