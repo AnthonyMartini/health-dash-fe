@@ -13,15 +13,12 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       console.log("USER HAS AN ERROR:", user.error);
 
       try {
-        userData = await apiRequest<{ data: any }>("GET_USER" as ApiRoute);
+        await apiRequest<{ data: any }>("GET_USER" as ApiRoute);
       } catch (error: any) {
         if (error.message === "404") {
           navigate("/new-user");
         }
       } finally {
-        if (userData) {
-          setStoredUserInfo(userData); 
-        }
         setLoading(false);
       }
     };
