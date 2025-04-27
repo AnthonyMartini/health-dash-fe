@@ -30,7 +30,7 @@ const components = {
             alt="My Icon"
             className="w-[30px] sm:w-[50px]"
           />
-          <span>NextStep Tracker</span>
+          <span>Next Step Tracker</span>
         </div>
       </View>
     );

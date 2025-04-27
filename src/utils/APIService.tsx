@@ -27,10 +27,12 @@ export const API_ROUTES = {
   LIST_TABLE: { path: "/health-data/tables", method: API_METHODS.GET },
   GET_GOALS: { path: "/goals", method: API_METHODS.GET },
   UPDATE_GOALS: { path: "/goals", method: API_METHODS.POST },
-  SUBSCRIBE_NOTIFICATION: { path: "/user-profile/subscribe", method: API_METHODS.POST},
-  UNSUBSCRIBE_NOTIFICATION: { path: "/user-profile/unsubscribe", method: API_METHODS.POST},
   UPLOAD_PFP: { path: "/user-profile/upload-url", method: API_METHODS.GET },
-  QUICKSIGHT: { path: "/quicksight", method: API_METHODS.GET},
+  SUBSCRIBE_NOTIFICATION: { path: "/user-profile/subscribe", method: API_METHODS.POST },
+  UNSUBSCRIBE_NOTIFICATION: { path: "/user-profile/unsubscribe", method: API_METHODS.POST },
+  QUICKSIGHT: { path: "/quicksight", method: API_METHODS.GET },
+  GET_NOTIFICATIONS: { path: "/user-profile/notifications", method: API_METHODS.GET },
+  DELETE_NOTIFICATION: { path: "/user-profile/notifications", method: API_METHODS.DELETE },
 } as const;
 
 export type ApiRoute = keyof typeof API_ROUTES;
