@@ -13,7 +13,7 @@ import { AiFillPhone } from "react-icons/ai";
 import { BiCalendar, BiMaleFemale } from "react-icons/bi";
 import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
-//import { HiThumbUp } from "react-icons/hi";
+import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
 import { apiRequest, ApiRoute } from "../utils/APIService";
 
@@ -41,7 +41,7 @@ const Profile: React.FC = () => {
   const { user, updateUser } = useUser(); // grab user data from context
 
   // State for toggles
-  const [notificationToggle, setNotificationToggle] = useState(false);
+  const [notificationToggle, setNotificationToggle] = useState(user.notification_subscription);
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
 
@@ -247,57 +247,62 @@ const Profile: React.FC = () => {
   const handleToggleNotification = async () => {
     const toggled = !notificationToggle;
     setNotificationToggle(toggled);
+    console.log("🔔 Notification toggle state changed to:", toggled);
 
     if ("serviceWorker" in navigator && "PushManager" in window) {
       try {
+        console.log("📱 Checking service worker registration...");
         const reg = await navigator.serviceWorker.register("/worker.js");
-        console.log("Service Worker registered:", reg);
+        console.log("✅ Service Worker registered:", reg);
 
         let subscription = await reg.pushManager.getSubscription();
+        console.log("📡 Current subscription:", subscription);
 
         if (toggled) {
           if (!subscription) {
+            console.log("🆕 Creating new push subscription...");
             subscription = await reg.pushManager.subscribe({
               userVisibleOnly: true,
               applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
             });
-            console.log("🟢 New Push Subscription:", subscription);
+            console.log("✅ New Push Subscription created:", subscription);
+
+            const device = /Mobi|Android/i.test(navigator.userAgent)
+              ? "mobile"
+              : "desktop";
+
+            const browser = (() => {
+              if (navigator.userAgent.includes("Chrome")) return "chrome";
+              if (navigator.userAgent.includes("Firefox")) return "firefox";
+              if (navigator.userAgent.includes("Safari")) return "safari";
+              return "unknown";
+            })();
+
+            console.log("📤 Sending subscription to backend...");
+            const response = await apiRequest("SUBSCRIBE_NOTIFICATION", {
+              body: { subscription, device, browser },
+            });
+            console.log("✅ Backend response:", response);
+          } else {
+            console.log("ℹ️ Subscription already exists");
           }
-
-          const device = /Mobi|Android/i.test(navigator.userAgent)
-            ? "mobile"
-            : "desktop";
-
-          const browser = (() => {
-            if (navigator.userAgent.includes("Chrome")) return "chrome";
-            if (navigator.userAgent.includes("Firefox")) return "firefox";
-            if (navigator.userAgent.includes("Safari")) return "safari";
-            return "unknown";
-          })();
-
-          await apiRequest("SUBSCRIBE_NOTIFICATION", {
-            body: { subscription, device, browser },
-          });
-
-          console.log("✅ Push subscription sent to backend.");
         } else {
-          // UNSUBSCRIBE
+          console.log("🔴 Unsubscribing from notifications...");
           if (subscription) {
             await subscription.unsubscribe();
-            console.log("🔴 Push subscription removed from browser");
+            console.log("✅ Push subscription removed from browser");
+
+            await apiRequest("UNSUBSCRIBE_NOTIFICATION", {
+              body: { device: "desktop", browser: "chrome" },
+            });
+            console.log("✅ Push subscription removed from backend");
           }
-
-          await apiRequest("UNSUBSCRIBE_NOTIFICATION", {
-            body: { device: "desktop", browser: "chrome" }, // optionally pass if needed
-          });
-
-          console.log("✅ Push subscription removed from backend.");
         }
       } catch (err) {
-        console.error("⚠️ Push subscription toggle error:", err);
+        console.error("❌ Push subscription error:", err);
       }
     } else {
-      alert("Push notifications are not supported in this browser.");
+      console.log("⚠️ Push notifications are not supported in this browser.");
     }
   };
 
@@ -453,7 +458,6 @@ const Profile: React.FC = () => {
               label="Push Notification"
               value={""}
               onChange={setEmail}
-              editable={isEditing}
               isBold
               onToggle={handleToggleNotification}
               toggle={notificationToggle}
@@ -556,7 +560,6 @@ const Profile: React.FC = () => {
   );
 };
 
-/*/ 🏆 Achievements Section
 const AchievementsSection: React.FC = () => {
   return (
     <div className="mt-10 w-full">
@@ -589,7 +592,6 @@ const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({
     </div>
   );
 };
-*/
 
 // ✅ Popup Component
 const Popup: React.FC<{

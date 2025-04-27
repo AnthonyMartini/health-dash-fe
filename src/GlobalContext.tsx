@@ -14,6 +14,7 @@ type GetuserProps = {
   height: string;
   weight: string;
   error: boolean;
+  notification_subscription: boolean;
 };
 type SetUserProps = {
   user_profile_picture_url: string;
@@ -45,6 +46,7 @@ const UserContext = createContext<UserContextType>({
     height: "",
     weight: "",
     error: false,
+    notification_subscription: false,
   },
   updateUser: () => {},
 });
@@ -63,6 +65,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     height: "",
     weight: "",
     error: false,
+    notification_subscription: false,
   });
 
   const updateUser = (user: SetUserProps) => {
@@ -96,6 +99,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
             gender: true,
             height: "",
             weight: "",
+            notification_subscription: false,
           });
         }
         console.error("Error fetching user data:", error);
