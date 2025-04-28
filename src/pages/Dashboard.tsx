@@ -1,8 +1,8 @@
-import React, { ReactElement, useState, useEffect } from "react";
+import React, { ReactElement, useState, useEffect, useRef } from "react";
 import { IoFootsteps } from "react-icons/io5";
 import { IoIosWater } from "react-icons/io";
 import { GiNightSleep } from "react-icons/gi";
-import { FaFire } from "react-icons/fa";
+import { FaFire, FaCalendarAlt } from "react-icons/fa";
 import { FaBowlFood } from "react-icons/fa6";
 import { RiDrinks2Fill } from "react-icons/ri";
 import SideBar from "../components/SideBar";
@@ -81,6 +81,7 @@ interface MetricCardProps {
   trend: number;
   previous_day: string;
   setMetric: (metric: string) => void;
+  isToday: boolean;
 }
 const MetricCard: React.FC<MetricCardProps> = ({
   metric,
@@ -90,12 +91,13 @@ const MetricCard: React.FC<MetricCardProps> = ({
   units,
   setMetric,
   previous_day = null,
+  isToday = true,
 }) => {
   return (
     <div
-      onClick={() => setMetric(metric)}
-      className="w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] bg-white p-3 flex flex-col rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1)] 
-                 hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer"
+      onClick={() => isToday && setMetric(metric)}
+      className={`w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] bg-white p-3 flex flex-col rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1)] 
+                 ${isToday ? 'hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer' : 'opacity-80'}`}
     >
       <div className="w-full h-[30px] text-lg flex text-[#5C6670]">
         <span className="flex-1 text-[16px] sm:text-[18px]">{metric}</span>
@@ -122,30 +124,32 @@ interface ContentCardProps {
   title: string;
   actionText?: string;
   action?: () => void;
+  isToday: boolean;
 }
 const ContentCard: React.FC<ContentCardProps> = ({
   content,
   title,
   actionText,
   action,
+  isToday = true,
 }) => {
   return (
     <div
-      className="w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col
-        hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+      className={`w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col
+        ${isToday ? 'hover:shadow-md hover:scale-[1.01] transition-all duration-200' : 'opacity-80'}`}
     >
       <div
-        className="flex items-center justify-between cursor-pointer"
-        onClick={action}
+        className={`flex items-center justify-between ${isToday ? 'cursor-pointer' : ''}`}
+        onClick={isToday ? action : undefined}
       >
         <span className="text-[#5C6670] text-[16px] sm:text-lg font-semibold">
           {title}
         </span>
-        {actionText && (
+        {actionText && isToday && (
           <span
             className="text-red-500 text-[13px] sm:text-md hover:underline"
             onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering parent click
+              e.stopPropagation();
               action?.();
             }}
           >
@@ -156,7 +160,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
 
       <div
         className="w-full flex-1 rounded-lg"
-        onClick={(e) => e.stopPropagation()} // Prevent bubbling from inner content
+        onClick={(e) => e.stopPropagation()}
       >
         {content}
       </div>
@@ -179,6 +183,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
     exercises: [],
     status: false,
   });
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const calendarRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
@@ -252,6 +259,152 @@ const Dashboard: React.FC<DashboardProps> = () => {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+        setShowCalendar(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleDateSelect = async (date: Date) => {
+    setSelectedDate(date);
+    setShowCalendar(false);
+    
+    try {
+      // Format date to match API expected format (YYYY-MM-DD)
+      const formattedDate = date.toLocaleDateString('en-CA', {
+        timeZone: 'America/New_York'
+      });
+
+      // Fetch health data for the selected date
+      const result = await apiRequest("GET_HEALTH_DATA", {
+        queryParams: { date: formattedDate }
+      });
+
+      // If no data is returned, create an empty data object
+      const emptyData = {
+        day_calories: 0,
+        day_steps: 0,
+        day_food: [],
+        day_workout_plan: [],
+        day_macros: {
+          protein: 0,
+          carb: 0,
+          fat: 0,
+        },
+        day_water: 0,
+        day_sleep: 0,
+        day_weight: 0,
+        day_calories_diff: 0,
+        day_sleep_diff: 0,
+        day_steps_diff: 0,
+        day_water_diff: 0,
+        previous_day: "previous day",
+      };
+
+      // Update the dashboard data with the fetched data or empty data if undefined
+      const filteredData = result?.data ? filterData(result.data) : filterData(emptyData);
+      setData(filteredData);
+
+      // Fetch and update weekly plan if needed
+      try {
+        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
+          queryParams: {},
+        });
+
+        const dayofweek = days[date.getDay()];
+        const workouts = result2?.data?.[dayofweek] ? filterWorkout(result2.data[dayofweek]) : [];
+
+        const missingWorkouts = workouts.filter(
+          (workout) =>
+            !filteredData.day_workout_plan.find(
+              (existing) => existing.workout_title === workout.workout_title
+            )
+        );
+
+        setData({
+          ...filteredData,
+          day_workout_plan: [
+            ...filteredData.day_workout_plan,
+            ...missingWorkouts,
+          ],
+        });
+      } catch (err) {
+        console.error("Failed to fetch weekly plan", err);
+        // If weekly plan fetch fails, just keep the current workout plan data
+      }
+    } catch (error) {
+      console.error("Error fetching data for selected date:", error);
+      // Set all data to 0 if there's an error
+      setData(filterData({
+        day_calories: 0,
+        day_steps: 0,
+        day_food: [],
+        day_workout_plan: [],
+        day_macros: {
+          protein: 0,
+          carb: 0,
+          fat: 0,
+        },
+        day_water: 0,
+        day_sleep: 0,
+        day_weight: 0,
+        day_calories_diff: 0,
+        day_sleep_diff: 0,
+        day_steps_diff: 0,
+        day_water_diff: 0,
+        previous_day: "previous day",
+      }));
+    }
+  };
+
+  const generateCalendarDays = () => {
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDay = firstDay.getDay();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const days = [];
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDay; i++) {
+      days.push(<div key={`empty-${i}`} className="w-8 h-8"></div>);
+    }
+
+    // Add cells for each day of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(year, month, i);
+      const isToday = date.toDateString() === new Date().toDateString();
+      const isSelected = date.toDateString() === selectedDate.toDateString();
+      const isFuture = date > today;
+      
+      days.push(
+        <div
+          key={`day-${i}`}
+          className={`w-8 h-8 flex items-center justify-center rounded-full
+            ${isFuture ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'}
+            ${isToday ? 'bg-blue-100' : ''}
+            ${isSelected ? 'bg-blue-500 text-white' : ''}
+          `}
+          onClick={() => !isFuture && handleDateSelect(date)}
+        >
+          {i}
+        </div>
+      );
+    }
+
+    return days;
+  };
+
   //Update LogWorkout object when user changes weight or reps
   function updateLogWorkout(
     exerciseIndex: number,
@@ -321,134 +474,185 @@ const Dashboard: React.FC<DashboardProps> = () => {
   }
 
   const Consumption: FoodItemProps[] | undefined = data?.day_food;
+
+  const isToday = selectedDate.toDateString() === new Date().toDateString();
+
   return (
     <div className="h-full w-full flex md:flex-row flex-col ">
       <SideBar SelectedPage="Dashboard" />
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-50/90 overflow-y-scroll">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
-            Welcome Back, {user?.first_name}
-          </h1>
-          <h3 className=" text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
-            Here is your health overview for the day:
-          </h3>
+        <div className="flex justify-between items-center">
           <div>
-            <div className="flex flex-row gap-[20px] w-full  justify-center flex-wrap ">
-              <MetricCard
-                metric="Calories Burnt"
-                value={data?.day_calories ?? 0}
-                icon={<FaFire fill="#fc7703" />}
-                trend={data?.day_calories_diff ?? 0}
-                previous_day={data.previous_day}
-                units=""
-                setMetric={() => setLogMetric("Calories")}
-              />
-              <MetricCard
-                metric="Steps"
-                value={data?.day_steps ?? 0}
-                icon={<IoFootsteps />}
-                trend={data?.day_steps_diff ?? 0}
-                units=""
-                previous_day={data.previous_day}
-                setMetric={() => setLogMetric("Steps")}
-              />
-              <MetricCard
-                metric="Sleep Duration"
-                value={data?.day_sleep ?? 0}
-                icon={<GiNightSleep fill="#c603fc" />}
-                trend={data?.day_sleep_diff ?? 0}
-                previous_day={data.previous_day}
-                units="h"
-                setMetric={() => setLogMetric("Sleep")}
-              />
-              <MetricCard
-                metric="Water Intake"
-                value={data?.day_water ?? 0}
-                icon={<IoIosWater fill="#5555FF" />}
-                trend={data?.day_water_diff ?? 0}
-                previous_day={data.previous_day}
-                units="L"
-                setMetric={() => setLogMetric("Water")}
+            <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
+              Welcome Back, {user?.first_name}
+            </h1>
+            <h3 className="text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
+              Here is your health overview for {isToday ? 'today' : selectedDate.toLocaleDateString()}:
+            </h3>
+          </div>
+          <div className="relative" ref={calendarRef}>
+            <div className="relative">
+              <FaCalendarAlt 
+                className="w-7 h-7 p-1 cursor-pointer hover:bg-gray-300 rounded-full text-gray-600" 
+                onClick={() => setShowCalendar(!showCalendar)}
               />
             </div>
-            <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap">
-              <ContentCard
-                title="Weight"
-                action={() => setLogMetric("Weight")}
-                content={
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className=" border-2 border-gray-200 w-[365px] h-[320px] overflow-hidden rounded-lg">
-                      {weightEmbedUrl ? (
-                        <iframe
-                          title="Weight Visual"
-                          src={weightEmbedUrl}
-                          className="w-full h-full border-none "
-                          style={{}}
-                        />
-                      ) : (
-                        <div className="text-center text-sm text-gray-400">
-                          Loading weight visual...
-                        </div>
-                      )}
+            {showCalendar && (
+              <div className="absolute right-0 mt-2 w-64 bg-white shadow-[0_2px_6px_rgba(13,26,38,0.15)] rounded-lg p-4 z-50" style={{ position: 'fixed', top: '100px', right: '20px' }}>
+                <div className="flex justify-between items-center mb-4">
+                  <button 
+                    onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1))}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    ←
+                  </button>
+                  <span className="font-semibold">
+                    {selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                  </span>
+                  <button 
+                    onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1))}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    →
+                  </button>
+                </div>
+                <div className="grid grid-cols-7 gap-1 text-center text-sm text-gray-500 mb-2">
+                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                    <div key={day} className="w-8 h-8 flex items-center justify-center">
+                      {day}
                     </div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {generateCalendarDays()}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div>
+          <div className="flex flex-row gap-[20px] w-full justify-center flex-wrap">
+            <MetricCard
+              metric="Calories Burnt"
+              value={data?.day_calories ?? 0}
+              icon={<FaFire fill="#fc7703" />}
+              trend={data?.day_calories_diff ?? 0}
+              previous_day={data.previous_day}
+              units=""
+              setMetric={() => setLogMetric("Calories")}
+              isToday={isToday}
+            />
+            <MetricCard
+              metric="Steps"
+              value={data?.day_steps ?? 0}
+              icon={<IoFootsteps />}
+              trend={data?.day_steps_diff ?? 0}
+              units=""
+              previous_day={data.previous_day}
+              setMetric={() => setLogMetric("Steps")}
+              isToday={isToday}
+            />
+            <MetricCard
+              metric="Sleep Duration"
+              value={data?.day_sleep ?? 0}
+              icon={<GiNightSleep fill="#c603fc" />}
+              trend={data?.day_sleep_diff ?? 0}
+              previous_day={data.previous_day}
+              units="h"
+              setMetric={() => setLogMetric("Sleep")}
+              isToday={isToday}
+            />
+            <MetricCard
+              metric="Water Intake"
+              value={data?.day_water ?? 0}
+              icon={<IoIosWater fill="#5555FF" />}
+              trend={data?.day_water_diff ?? 0}
+              previous_day={data.previous_day}
+              units="L"
+              setMetric={() => setLogMetric("Water")}
+              isToday={isToday}
+            />
+          </div>
+          <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap">
+            <ContentCard
+              title="Weight"
+              action={() => setLogMetric("Weight")}
+              content={
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="border-2 border-gray-200 w-[365px] h-[320px] overflow-hidden rounded-lg">
+                    {weightEmbedUrl ? (
+                      <iframe
+                        title="Weight Visual"
+                        src={weightEmbedUrl}
+                        className="w-full h-full border-none"
+                        style={{}}
+                      />
+                    ) : (
+                      <div className="text-center text-sm text-gray-400">
+                        Loading weight visual...
+                      </div>
+                    )}
                   </div>
-                }
-              />
-              <ContentCard
-                title="Macros"
-                content={
-                  <div className="w-full h-full flex items-center justify-center">
-                    <div className="border-2 border-gray-200 w-[365px] h-[320px] overflow-hidden rounded-lg">
-                      {macrosEmbedUrl ? (
-                        <iframe
-                          title="Macros Visual"
-                          src={macrosEmbedUrl}
-                          className="w-full h-full border-none"
-                          style={{ minHeight: "300px" }}
-                        />
+                </div>
+              }
+              isToday={isToday}
+            />
+            <ContentCard
+              title="Macros"
+              content={
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="border-2 border-gray-200 w-[365px] h-[320px] overflow-hidden rounded-lg">
+                    {macrosEmbedUrl ? (
+                      <iframe
+                        title="Macros Visual"
+                        src={macrosEmbedUrl}
+                        className="w-full h-full border-none"
+                        style={{ minHeight: "300px" }}
+                      />
+                    ) : (
+                      <div className="text-center text-sm text-gray-400">
+                        Loading macros visual...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              }
+              isToday={isToday}
+            />
+          </div>
+          <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap">
+            <ContentCard
+              title="Today's Consumption"
+              action={() => setLogConsumption(true)}
+              actionText={isToday ? "Add Consumption" : undefined}
+              content={
+                <div className="w-full flex-1 rounded-lg gap-2 flex flex-col p-2">
+                  {Consumption?.map((item, index) => (
+                    <div
+                      key={`item-${index}`}
+                      className="w-full h-[50px] text-[11px] sm:text-[14px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg"
+                    >
+                      {item.title === "food" ? (
+                        <FaBowlFood fill="#964B00" />
                       ) : (
-                        <div className="text-center text-sm text-gray-400">
-                          Loading macros visual...
-                        </div>
+                        <RiDrinks2Fill fill="blue" />
                       )}
-                    </div>
-                  </div>
-                }
-              />
-            </div>
-            <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap ">
-              <ContentCard
-                title="Today's Consumption"
-                action={() => setLogConsumption(true)}
-                content={
-                  <div className="w-full  flex-1 rounded-lg  gap-2 flex flex-col p-2">
-                    {Consumption?.map((item, index) => (
-                      <div
-                        key={`item-${index}`}
-                        className="w-full h-[50px] text-[11px] sm:text-[14px] flex items-center shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg "
-                      >
-                        {item.title === "food" ? (
-                          <FaBowlFood fill="#964B00" />
-                        ) : (
-                          <RiDrinks2Fill fill="blue" />
-                        )}
-                        <div className="flex-1 ">
-                          <span className="font-semibold">{item.title}</span>
-                          <div className="flex font-bold gap-2 ">
-                            <span className="text-[#FFA500]">
-                              {item.macros.protein}g protein
-                            </span>
-                            <span className="text-[#007AFF]">
-                              {item.macros.carb}g carbs
-                            </span>
-                            <span className="text-[#AF52DE]">
-                              {item.macros.fat}g fat
-                            </span>
-                          </div>
+                      <div className="flex-1">
+                        <span className="font-semibold">{item.title}</span>
+                        <div className="flex font-bold gap-2">
+                          <span className="text-[#FFA500]">
+                            {item.macros.protein}g protein
+                          </span>
+                          <span className="text-[#007AFF]">
+                            {item.macros.carb}g carbs
+                          </span>
+                          <span className="text-[#AF52DE]">
+                            {item.macros.fat}g fat
+                          </span>
                         </div>
-                        <span className="font-bold ">
-                          {item.calories} kCal{" "}
-                        </span>
+                      </div>
+                      <span className="font-bold">{item.calories} kCal</span>
+                      {isToday && (
                         <CiTrash
                           size={20}
                           color="red"
@@ -457,7 +661,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
                             setData((prev) => {
                               const updatedData: DashboardDataProps = {
                                 ...prev,
-
                                 day_food: prev.day_food.filter(
                                   (_, idx) =>
                                     idx !==
@@ -466,71 +669,70 @@ const Dashboard: React.FC<DashboardProps> = () => {
                                     )
                                 ),
                               };
-
-                              // Call API immediately after updating state
                               updateDB(updatedData);
-
-                              return updatedData; // Ensure the new state is returned
+                              return updatedData;
                             });
                           }}
                         />
-                      </div>
-                    ))}
-                  </div>
-                }
-              />
-              <ContentCard
-                title="Today's Workout Plan"
-                action={() => navigate("/workout-plan")}
-                content={
-                  <div className="w-full flex-1 rounded-lg  gap-2 flex flex-col p-2 ">
-                    {data.day_workout_plan?.map((workout, index) => (
-                      <div
-                        key={`item-${index}`}
-                        className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg "
-                      >
-                        <div className="flex-1 flex text-[14px] sm:text-[16px] ">
-                          <span className="font-semibold flex-1">
-                            {workout.workout_title}
-                          </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              }
+              isToday={isToday}
+            />
+            <ContentCard
+              title="Today's Workout Plan"
+              action={() => navigate("/workout-plan")}
+              content={
+                <div className="w-full flex-1 rounded-lg gap-2 flex flex-col p-2">
+                  {data.day_workout_plan?.map((workout, index) => (
+                    <div
+                      key={`item-${index}`}
+                      className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg"
+                    >
+                      <div className="flex-1 flex text-[14px] sm:text-[16px]">
+                        <span className="font-semibold flex-1">
+                          {workout.workout_title}
+                        </span>
+                        <span
+                          className={`w-[115px] ${
+                            workout.status ? "text-green-600" : "text-red-500"
+                          }`}
+                        >
+                          {workout.status ? "Completed" : "Not Completed"}
+                        </span>
+                        {isToday && (
                           <span
-                            className={`w-[115px] ${
-                              workout.status //=== "Completed"
-                                ? "text-green-600"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {workout.status ? "Completed" : "Not Completed"}
-                          </span>
-                          <span
-                            className=" flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
+                            className="flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
                             onClick={() => setLogPlan(workout)}
                           >
                             Log Plan
                           </span>
-                        </div>
-                        <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px]">
-                          {workout.exercises?.map((item, index) => (
-                            <div
-                              key={`item-${index}`}
-                              className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2"
-                            >
-                              <span className="flex-1">{item.title}</span>
-                              <span className="">
-                                {item.set_count}{" "}
-                                {workout.workout_title === "cardio" //Wrong
-                                  ? "minutes"
-                                  : "sets"}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                        )}
                       </div>
-                    ))}
-                  </div>
-                }
-              />
-            </div>
+                      <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px]">
+                        {workout.exercises?.map((item, index) => (
+                          <div
+                            key={`item-${index}`}
+                            className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2"
+                          >
+                            <span className="flex-1">{item.title}</span>
+                            <span className="">
+                              {item.set_count}{" "}
+                              {workout.workout_title === "cardio"
+                                ? "minutes"
+                                : "sets"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              }
+              isToday={isToday}
+            />
           </div>
         </div>
       </div>
