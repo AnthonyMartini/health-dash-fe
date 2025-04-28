@@ -13,7 +13,7 @@ import { AiFillPhone } from "react-icons/ai";
 import { BiCalendar, BiMaleFemale } from "react-icons/bi";
 import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
-import { HiThumbUp } from "react-icons/hi";
+//import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
 import { apiRequest, ApiRoute } from "../utils/APIService";
 
@@ -41,7 +41,9 @@ const Profile: React.FC = () => {
   const { user, updateUser } = useUser(); // grab user data from context
 
   // State for toggles
-  const [notificationToggle, setNotificationToggle] = useState(user.notification_subscription);
+  const [notificationToggle, setNotificationToggle] = useState(
+    user.notification_subscription
+  );
   // State for editing
   const [isEditing, setIsEditing] = useState(false);
 
@@ -161,7 +163,7 @@ const Profile: React.FC = () => {
       const { uploadUrl, fileUrl } = await apiRequest("UPLOAD_PFP", {
         queryParams: { fileType: file.type },
       });
-  
+
       // Step 2: Upload directly to S3 using presigned URL
       const uploadRes = await fetch(uploadUrl, {
         method: "PUT",
@@ -170,11 +172,11 @@ const Profile: React.FC = () => {
         },
         body: file,
       });
-  
+
       if (!uploadRes.ok) {
         throw new Error("Failed to upload image to S3");
       }
-      
+
       return fileUrl;
     } catch (error) {
       console.error("Upload failed:", error);
@@ -560,6 +562,7 @@ const Profile: React.FC = () => {
   );
 };
 
+/*
 const AchievementsSection: React.FC = () => {
   return (
     <div className="mt-10 w-full">
@@ -592,7 +595,7 @@ const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({
     </div>
   );
 };
-
+*/
 // ✅ Popup Component
 const Popup: React.FC<{
   message: string;
