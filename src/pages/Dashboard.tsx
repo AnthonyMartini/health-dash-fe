@@ -9,7 +9,7 @@ import SideBar from "../components/SideBar";
 import { CiTrash } from "react-icons/ci";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../GlobalContext.tsx";
-import { apiRequest } from "../utils/APIService";
+import { apiService } from "../utils/APIService";
 
 import { FoodItemProps, WorkoutPlanProps, DashboardDataProps } from "../utils";
 interface DashboardProps {
@@ -212,7 +212,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       // Step 1: Get today's health data
       let filteredData;
       try {
-        const result = await apiRequest("GET_HEALTH_DATA", {
+        const result = await apiService.request("GET_HEALTH_DATA", {
           queryParams: { date: today },
         });
         console.log("Fetched today's workouts:", result.data.day_workout_plan);
@@ -226,7 +226,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
       // Step 2: Then get weekly plan, after we have filteredData
       try {
-        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
+        const result2 = await apiService.request("GET_WEEKLY_PLAN", {
           queryParams: {},
         });
 
@@ -258,7 +258,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
     async function fetchEmbedUrls() {
       try {
-        const response = await apiRequest("QUICKSIGHT");
+        const response = await apiService.request("QUICKSIGHT");
         setWeightEmbedUrl(response.weightEmbedUrl);
         setMacrosEmbedUrl(response.macrosEmbedUrl);
       } catch (err) {
@@ -297,8 +297,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
       });
 
       // Fetch health data for the selected date
-      const result = await apiRequest("GET_HEALTH_DATA", {
-        queryParams: { date: formattedDate },
+      const result = await apiService.request("GET_HEALTH_DATA", {
+        queryParams: { date: formattedDate }
       });
 
       // If no data is returned, create an empty data object
@@ -330,7 +330,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
       // Fetch and update weekly plan if needed
       try {
-        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
+        const result2 = await apiService.request("GET_WEEKLY_PLAN", {
           queryParams: {},
         });
 
@@ -482,16 +482,38 @@ const Dashboard: React.FC<DashboardProps> = () => {
       timeZone: "America/New_York",
     });
 
-    // Destructure and omit the diff fields
-    const cleanUpdate = { ...update } as any;
+    // Create a clean update object with only non-zero and non-empty values
+    const cleanUpdate: any = {};
 
-    delete cleanUpdate.day_calories_diff;
-    delete cleanUpdate.day_steps_diff;
-    delete cleanUpdate.day_sleep_diff;
-    delete cleanUpdate.day_water_diff;
-    delete cleanUpdate.previous_day;
+    // Only include non-zero numeric values
+    if (update.day_calories > 0) cleanUpdate.day_calories = update.day_calories;
+    if (update.day_steps > 0) cleanUpdate.day_steps = update.day_steps;
+    if (update.day_sleep > 0) cleanUpdate.day_sleep = update.day_sleep;
+    if (update.day_water > 0) cleanUpdate.day_water = update.day_water;
+    if (update.day_weight > 0) cleanUpdate.day_weight = update.day_weight;
+
+    // Only include non-empty arrays
+    if (update.day_food && update.day_food.length > 0) {
+      cleanUpdate.day_food = update.day_food;
+    }
+    if (update.day_workout_plan && update.day_workout_plan.length > 0) {
+      cleanUpdate.day_workout_plan = update.day_workout_plan;
+    }
+
+    // Only include macros if any of them are non-zero
+    if (update.day_macros) {
+      const macros = update.day_macros;
+      if (macros.protein > 0 || macros.carb > 0 || macros.fat > 0) {
+        cleanUpdate.day_macros = {
+          protein: macros.protein || 0,
+          carb: macros.carb || 0,
+          fat: macros.fat || 0
+        };
+      }
+    }
+
     console.log("clean update", cleanUpdate);
-    await apiRequest("UPDATE_HEALTH_DATA", {
+    await apiService.request("UPDATE_HEALTH_DATA", {
       queryParams: { date: today },
       body: cleanUpdate,
     });

@@ -1,7 +1,18 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { apiRequest, ApiRoute } from "./utils/APIService";
+import { apiService, ApiRoute } from "./utils/APIService";
 
-type GetuserProps = {
+interface UserAchievement {
+  completed: boolean;
+  progress?: number;
+  date?: string;
+  last_log_date?: string;
+}
+
+interface UserAchievements {
+  [key: string]: UserAchievement;
+}
+
+export interface GetuserProps {
   PK: string;
   user_profile_picture_url: string;
   nickname: string;
@@ -15,7 +26,9 @@ type GetuserProps = {
   weight: string;
   error: boolean;
   notification_subscription: boolean;
-};
+  achievements: UserAchievements;
+}
+
 type SetUserProps = {
   user_profile_picture_url: string;
   nickname: string;
@@ -47,6 +60,7 @@ const UserContext = createContext<UserContextType>({
     weight: "",
     error: false,
     notification_subscription: false,
+    achievements: {},
   },
   updateUser: () => {},
 });
@@ -66,6 +80,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     weight: "",
     error: false,
     notification_subscription: false,
+    achievements: {},
   });
 
   const updateUser = (user: SetUserProps) => {
@@ -77,7 +92,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const response = await apiRequest<{ data: any }>(
+        const response = await apiService.request<{ data: any }>(
           "GET_USER" as ApiRoute
         );
         console.log("Fetched user data:", response);
@@ -100,6 +115,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
             height: "",
             weight: "",
             notification_subscription: false,
+            achievements: {},
           });
         }
         console.error("Error fetching user data:", error);

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 import { FaFireAlt } from "react-icons/fa";
 import { BsSuitHeartFill } from "react-icons/bs";
-import { apiRequest } from "../utils/APIService";
+import { apiService } from "../utils/APIService";
 import { CiTrash } from "react-icons/ci";
 
 /* ------------- DATA TYPES & MOCK ARRAYS ------------- */
@@ -204,7 +204,7 @@ const WorkoutPlan: React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const result = await apiRequest("GET_WORKOUT_CARD", {
+        const result = await apiService.request("GET_WORKOUT_CARD", {
           queryParams: { action: "user" },
         });
         setFavoritePlans(filterPlans(true, result.data));
@@ -212,7 +212,7 @@ const WorkoutPlan: React.FC = () => {
         /*NOOP*/
       }
       try {
-        const result2 = await apiRequest("GET_WEEKLY_PLAN", {
+        const result2 = await apiService.request("GET_WEEKLY_PLAN", {
           queryParams: {},
         });
 
@@ -221,7 +221,7 @@ const WorkoutPlan: React.FC = () => {
         /*NOOP*/
       }
       try {
-        const result2 = await apiRequest("GET_WORKOUT_CARD", {
+        const result2 = await apiService.request("GET_WORKOUT_CARD", {
           queryParams: { action: "discover" },
         });
         setDiscoverPlans(filterPlans(false, result2.data.discover));
@@ -345,7 +345,7 @@ const WorkoutPlan: React.FC = () => {
                             async function sendData() {
                               try {
                                 //delete card on DB
-                                await apiRequest("DELETE_WEEKLY_PLAN", {
+                                await apiService.request("DELETE_WEEKLY_PLAN", {
                                   body: {
                                     workoutcard_id: pName.workoutcard_id,
                                     day_of_week: dayMapping[wDay.day],
@@ -415,7 +415,7 @@ const WorkoutPlan: React.FC = () => {
                     async function sendData() {
                       try {
                         //delete card on DB
-                        await apiRequest("STORE_WEEKLY_PLAN", {
+                        await apiService.request("STORE_WEEKLY_PLAN", {
                           body: {
                             workoutcard_id: selectedPlan.workoutcard_id,
                             day_of_week: dayMapping[dayData.day],
@@ -550,7 +550,7 @@ const WorkoutPlan: React.FC = () => {
                   async function sendData() {
                     try {
                       //Create new card on backend
-                      const result = await apiRequest("UPDATE_WORKOUT_CARD", {
+                      const result = await apiService.request("UPDATE_WORKOUT_CARD", {
                         body: {
                           workoutcard_title: workoutName,
                           workoutcard_content: { exercises: exercises },
@@ -609,7 +609,7 @@ const WorkoutPlan: React.FC = () => {
                   async function sendData() {
                     try {
                       //delete card on DB
-                      await apiRequest("DELETE_WORKOUT_CARD", {
+                      await apiService.request("DELETE_WORKOUT_CARD", {
                         body: { workoutcard_id: confirmDelete },
                       });
                       //Remove Card from front end

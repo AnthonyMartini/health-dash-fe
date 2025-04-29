@@ -6,8 +6,10 @@ import { useNavigate } from "react-router-dom";
 import APPIconSVG from "../assets/AppIcon.svg";
 import DefaultAvatar from "../assets/defaultAvatar.png";
 import { useUser } from "../GlobalContext.tsx";
-import { apiRequest, ApiRoute } from "../utils/APIService";
+import { apiService, ApiRoute } from "../utils/APIService";
 import { FaSpinner } from "react-icons/fa";
+import { FaRegSquare, FaCheckSquare } from "react-icons/fa";
+import { MdDelete } from "react-icons/md";
 
 const MOTIVATIONAL_QUOTES = [
   "The only bad workout is the one that didn't happen. - Arnold Schwarzenegger",
@@ -58,6 +60,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuote, setCurrentQuote] = useState("");
   const notificationRef = useRef<HTMLDivElement>(null);
+  const [hoveredGoal, setHoveredGoal] = useState<string | null>(null);
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
@@ -68,7 +71,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
     const fetchNotifications = async () => {
       setIsLoading(true);
       try {
-        const response = await apiRequest<{ 
+        const response = await apiService.request<{ 
           status: number;
           message: string;
           data: Notification[];
@@ -106,7 +109,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
 
   const handleDeleteNotification = async (notificationId: string, timestamp: string) => {
     try {
-      await apiRequest("DELETE_NOTIFICATION" as ApiRoute, {
+      await apiService.request("DELETE_NOTIFICATION" as ApiRoute, {
         queryParams: { timestamp }
       });
       // Update local state by removing only the specific notification
@@ -118,6 +121,14 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
     } catch (error) {
       console.error("Error deleting notification:", error);
     }
+  };
+
+  const handleToggleGoal = (goalTitle: string) => {
+    // Implementation of handleToggleGoal
+  };
+
+  const handleDeleteGoal = (goalTitle: string) => {
+    // Implementation of handleDeleteGoal
   };
 
   return (
@@ -164,7 +175,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
               ) : notifications.length > 0 ? (
                 notifications.map((notification) => (
                   <div 
-                    key={notification.id}
+                    key={`notification-${notification.id}`}
                     className="p-3 border-b border-gray-100 hover:bg-gray-50 group relative"
                   >
                     <div className="flex justify-between items-start">

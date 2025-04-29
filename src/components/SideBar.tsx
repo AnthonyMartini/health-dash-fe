@@ -4,7 +4,7 @@ import { LuLayoutDashboard } from "react-icons/lu";
 import { CgGym } from "react-icons/cg";
 import { FaCheckSquare, FaRegSquare, FaCheck } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { apiRequest } from "../utils/APIService";
+import { apiService } from "../utils/APIService";
 
 interface SideBarProps {
   SelectedPage?: string;
@@ -27,7 +27,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
     async function fetchData() {
       setLoading(true); // Start loading
       try {
-        const result = await apiRequest("GET_GOALS");
+        const result = await apiService.request("GET_GOALS");
         console.log("API Result:", result); // ✅ Check full response structure
 
         // ✅ Extract the goals correctly from the nested structure
@@ -63,7 +63,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
 
     try {
       // Step 2: Send the entire array of goals to the backend
-      await apiRequest("UPDATE_GOALS", {
+      await apiService.request("UPDATE_GOALS", {
         body: {
           goal: updatedGoals, // ✅ Send the whole list of goals
         },
@@ -87,7 +87,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
     setGoals((prevGoals) => [...prevGoals, { title: newGoal, status: false }]);
     setNewGoal("");
     try {
-      await apiRequest("UPDATE_GOALS", {
+      await apiService.request("UPDATE_GOALS", {
         body: {
           goal: updatedGoals,
         },
@@ -106,7 +106,7 @@ const SideBar: React.FC<SideBarProps> = ({ SelectedPage }) => {
 
     try {
       console.log(`Deleting goal: ${title}`);
-      await apiRequest("UPDATE_GOALS", {
+      await apiService.request("UPDATE_GOALS", {
         body: {
           goal: updatedGoals, // ✅ Send updated list after deletion
         },
