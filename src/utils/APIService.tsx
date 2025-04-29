@@ -4,6 +4,7 @@ import { fetchAuthSession } from "@aws-amplify/auth";
 const BASE_URL =
   "https://34pdw0bjyi.execute-api.us-east-1.amazonaws.com/default/api";
   // "http://localhost:8000/api";
+
 export const API_METHODS = {
   GET: "GET",
   POST: "POST",
@@ -61,57 +62,73 @@ const buildUrl = (path: string, queryParams?: Record<string, any>): string => {
   return `${BASE_URL}${path}?${queryString}`;
 };
 
-export const apiRequest = async <T = any,>(
-  route: ApiRoute,
-  options: ApiOptions = {}
-): Promise<T> => {
-  const { path, method } = API_ROUTES[route];
-  const { queryParams, body, headers = {} } = options;
+// Create a class to handle API requests
+export class APIService {
+  private checkAchievements: ((response: any) => void) | null = null;
 
-  try {
-    // Step 1: Get Bearer Token using fetchAuthSession
-    const token = (await fetchAuthSession()).tokens?.accessToken?.toString();
-    //console.log();
-    if (!token) {
-      throw new Error("No token found, please login again.");
-    }
+  setAchievementCheck(checkAchievements: (response: any) => void) {
+    this.checkAchievements = checkAchievements;
+  }
 
-    // Step 2: Build URL with query params
-    const url = buildUrl(path, queryParams);
+  async request<T = any>(
+    route: ApiRoute,
+    options: ApiOptions = {}
+  ): Promise<T> {
+    const { path, method } = API_ROUTES[route];
+    const { queryParams, body, headers = {} } = options;
 
-    // Step 3: Build Axios config
-    const config: AxiosRequestConfig = {
-      method,
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Include Bearer token here
-        ...headers,
-      },
-      data: body || undefined,
-    };
+    try {
+      // Step 1: Get Bearer Token using fetchAuthSession
+      const token = (await fetchAuthSession()).tokens?.accessToken?.toString();
+      if (!token) {
+        throw new Error("No token found, please login again.");
+      }
 
-    console.log("API Request:", config);
+      // Step 2: Build URL with query params
+      const url = buildUrl(path, queryParams);
 
-    // Step 4: Make API call using Axios
-    const response: AxiosResponse<T> = await axios(config);
+      // Step 3: Build Axios config
+      const config: AxiosRequestConfig = {
+        method,
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          ...headers,
+        },
+        data: body || undefined,
+      };
 
-    console.log("API Response:", response);
+      console.log("API Request:", config);
 
-    return response.data;
-  } catch (error: any) {
-    console.error(
-      `API Request failed: ${error.message}`,
-      error.response.status
-    );
+      // Step 4: Make API call using Axios
+      const response: AxiosResponse<T> = await axios(config);
 
-    // Throw meaningful errors
-    if (error.response) {
-      throw new Error(error.response.status);
-    } else if (error.request) {
-      throw new Error("API Error: No response received from server");
-    } else {
-      throw new Error(`API Error: ${error.message}`);
+      console.log("API Response:", response);
+
+      // Step 5: Check for achievements in the response if checkAchievements is set
+      if (this.checkAchievements) {
+        this.checkAchievements(response.data);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error(
+        `API Request failed: ${error.message}`,
+        error.response?.status
+      );
+
+      // Throw meaningful errors
+      if (error.response) {
+        throw new Error(error.response.status);
+      } else if (error.request) {
+        throw new Error("API Error: No response received from server");
+      } else {
+        throw new Error(`API Error: ${error.message}`);
+      }
     }
   }
-};
+}
+
+// Create a singleton instance
+export const apiService = new APIService();

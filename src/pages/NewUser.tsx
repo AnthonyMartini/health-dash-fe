@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { apiRequest, ApiRoute } from "../utils/APIService";
+import { apiService, ApiRoute } from "../utils/APIService";
 import { useNavigate } from "react-router-dom";
 
 /* ------------- DATA TYPES & MOCK ARRAYS ------------- */
@@ -124,7 +124,16 @@ const NewUserPage: React.FC = () => {
           <button
             onClick={() => {
               async function sendData() {
-                await apiRequest("UPDATE_USER" as ApiRoute, {
+                await apiService.request<{
+                  nickname: string;
+                  first_name: string;
+                  last_name: string;
+                  email: string;
+                  phone: string;
+                  birthdate: string;
+                  gender: boolean;
+                  height: number;
+                }>("UPDATE_USER" as ApiRoute, {
                   body: {
                     nickname: userDetails.username,
                     first_name: userDetails.first_name,

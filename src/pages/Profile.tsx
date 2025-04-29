@@ -7,6 +7,7 @@ import {
   FaPencilAlt,
   FaCheck,
   FaTimes,
+  FaTrophy,
 } from "react-icons/fa";
 import { MdEmail } from "react-icons/md";
 import { AiFillPhone } from "react-icons/ai";
@@ -15,9 +16,10 @@ import { GiBodyHeight, GiWeight } from "react-icons/gi";
 import { IoIosWarning } from "react-icons/io";
 //import { HiThumbUp } from "react-icons/hi";
 import DefaultAvatar from "../assets/defaultAvatar.png";
-import { apiRequest, ApiRoute } from "../utils/APIService";
+import { apiService, ApiRoute } from "../utils/APIService";
 
 import { useUser } from "../GlobalContext.tsx";
+import { ACHIEVEMENTS, Achievement } from "../config/achievements";
 
 // === Public VAPID key ===
 const VAPID_PUBLIC_KEY =
@@ -35,6 +37,76 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
   }
   return outputArray;
 }
+
+interface UserAchievement {
+  completed: boolean;
+  progress?: number;
+  date?: string;
+  last_log_date?: string;
+}
+
+interface UserAchievements {
+  [key: string]: UserAchievement;
+}
+
+const AchievementCard: React.FC<{
+  achievement: Achievement;
+  userAchievements: UserAchievements;
+}> = ({ achievement, userAchievements }) => {
+  const userAchievement = userAchievements?.[achievement.id];
+  const isCompleted = userAchievement?.completed;
+  const progress = userAchievement?.progress || 0;
+  const date = userAchievement?.date || userAchievement?.last_log_date;
+
+  return (
+    <div className={`p-4 rounded-lg border ${isCompleted ? 'border-transparent bg-gradient-to-r from-red-400 to-orange-400' : 'border-gray-200 bg-gray-50'}`}>
+      <div className="flex items-center gap-3">
+        <div className={`p-2 rounded-full ${isCompleted ? 'bg-white/20' : 'bg-gray-300'}`}>
+          <FaTrophy className={`text-xl ${isCompleted ? 'text-white' : 'text-gray-500'}`} />
+        </div>
+        <div className="flex-1">
+          <h3 className={`font-semibold ${isCompleted ? 'text-white' : 'text-gray-700'}`}>
+            {achievement.title}
+          </h3>
+          <p className={`text-sm ${isCompleted ? 'text-white/90' : 'text-gray-500'}`}>
+            {achievement.description}
+          </p>
+          {achievement.type === 'streak' && (
+            <div className="mt-2">
+              <div className="w-full bg-white/20 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full ${isCompleted ? 'bg-white' : 'bg-gray-400'}`}
+                  style={{ width: `${Math.min((progress / achievement.target) * 100, 100)}%` }}
+                />
+              </div>
+              <p className={`text-xs mt-1 ${isCompleted ? 'text-white/90' : 'text-gray-500'}`}>
+                {progress}/{achievement.target} days
+              </p>
+            </div>
+          )}
+          {achievement.type === 'quantity' && (
+            <div className="mt-2">
+              <div className="w-full bg-white/20 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full ${isCompleted ? 'bg-white' : 'bg-gray-400'}`}
+                  style={{ width: `${Math.min((progress / achievement.target) * 100, 100)}%` }}
+                />
+              </div>
+              <p className={`text-xs mt-1 ${isCompleted ? 'text-white/90' : 'text-gray-500'}`}>
+                {progress}/{achievement.target}
+              </p>
+            </div>
+          )}
+          {isCompleted && date && (
+            <p className="text-xs text-white/90 mt-1">
+              Achieved on: {new Date(date).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -160,7 +232,7 @@ const Profile: React.FC = () => {
   const uploadImageToServer = async (file: File): Promise<string> => {
     try {
       // Step 1: Get presigned URL from backend via centralized API request
-      const { uploadUrl, fileUrl } = await apiRequest("UPLOAD_PFP", {
+      const { uploadUrl, fileUrl } = await apiService.request("UPLOAD_PFP", {
         queryParams: { fileType: file.type },
       });
 
@@ -228,7 +300,7 @@ const Profile: React.FC = () => {
         setNewProfileImage(null); // Clear temp image
 
         // ✅ API call
-        await apiRequest("UPDATE_USER" as ApiRoute, {
+        await apiService.request("UPDATE_USER" as ApiRoute, {
           body: updatedUserData,
         });
 
@@ -281,7 +353,7 @@ const Profile: React.FC = () => {
             })();
 
             console.log("📤 Sending subscription to backend...");
-            const response = await apiRequest("SUBSCRIBE_NOTIFICATION", {
+            const response = await apiService.request("SUBSCRIBE_NOTIFICATION", {
               body: { subscription, device, browser },
             });
             console.log("✅ Backend response:", response);
@@ -294,7 +366,7 @@ const Profile: React.FC = () => {
             await subscription.unsubscribe();
             console.log("✅ Push subscription removed from browser");
 
-            await apiRequest("UNSUBSCRIBE_NOTIFICATION", {
+            await apiService.request("UNSUBSCRIBE_NOTIFICATION", {
               body: { device: "desktop", browser: "chrome" },
             });
             console.log("✅ Push subscription removed from backend");
@@ -532,8 +604,19 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        {/* Achievements Section
-        <AchievementsSection /> */}
+        {/* Achievements Section */}
+        <div className="mt-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Achievements</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.values(ACHIEVEMENTS).map((achievement) => (
+              <AchievementCard
+                key={achievement.id}
+                achievement={achievement}
+                userAchievements={user.achievements || {}}
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* POPUPS */}
@@ -562,40 +645,6 @@ const Profile: React.FC = () => {
   );
 };
 
-/*
-const AchievementsSection: React.FC = () => {
-  return (
-    <div className="mt-10 w-full">
-      <h2 className="text-lg md:text-xl font-semibold text-gray-800 mb-4">
-        Achievements
-      </h2>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-6">
-        {Array.from({ length: 15 }).map((_, index) => (
-          <AchievementCard
-            key={index}
-            title="Yay"
-            icon={<HiThumbUp className="text-yellow-400 text-2xl" />}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-// 🏆 Individual Achievement Card
-const AchievementCard: React.FC<{ title: string; icon: React.ReactNode }> = ({
-  title,
-  icon,
-}) => {
-  return (
-    <div className="flex flex-col items-center justify-center bg-[rgba(239,240,240,0.3)] rounded-lg w-40 h-24 p-4">
-      {icon}
-      <span className="text-sm font-medium mt-2">{title}</span>
-    </div>
-  );
-};
-*/
 // ✅ Popup Component
 const Popup: React.FC<{
   message: string;
@@ -849,6 +898,48 @@ const DataRow: React.FC<{
         </div>
       )}
     </>
+  );
+};
+
+// Achievement Popup Component
+const AchievementPopup: React.FC<{
+  achievement: {
+    id: string;
+    title: string;
+    description: string;
+  };
+  onClose: () => void;
+}> = ({ achievement, onClose }) => {
+  useEffect(() => {
+    // Auto close after 5 seconds
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50 animate-slide-up">
+      <div className="bg-gradient-to-r from-red-400 to-orange-400 text-white p-6 rounded-xl shadow-lg max-w-sm">
+        <div className="flex items-start gap-4">
+          <div className="bg-white/20 p-3 rounded-full">
+            <FaTrophy className="text-2xl text-white" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-xl mb-1">Achievement Unlocked! 🎉</h3>
+            <h4 className="font-semibold text-lg mb-1">{achievement.title}</h4>
+            <p className="text-white/90">{achievement.description}</p>
+          </div>
+          <button 
+            onClick={onClose}
+            className="text-white/80 hover:text-white"
+          >
+            <FaTimes />
+          </button>
+        </div>
+      </div>
+    </div>
   );
 };
 
