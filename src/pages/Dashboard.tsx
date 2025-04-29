@@ -97,7 +97,11 @@ const MetricCard: React.FC<MetricCardProps> = ({
     <div
       onClick={() => isToday && setMetric(metric)}
       className={`w-[145px] sm:w-[180px] xl:w-[220px] h-[110px] sm:h-[130px] bg-white p-3 flex flex-col rounded-xl shadow-[0_2px_5px_rgba(0,0,0,0.1)] 
-                 ${isToday ? 'hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer' : 'opacity-80'}`}
+                 ${
+                   isToday
+                     ? "hover:shadow-md hover:scale-[1.03] transition-all duration-200 cursor-pointer"
+                     : "opacity-80"
+                 }`}
     >
       <div className="w-full h-[30px] text-lg flex text-[#5C6670]">
         <span className="flex-1 text-[16px] sm:text-[18px]">{metric}</span>
@@ -136,10 +140,16 @@ const ContentCard: React.FC<ContentCardProps> = ({
   return (
     <div
       className={`w-[310px] sm:w-[380px] xl:w-[460px] min-h-[310px] sm:min-h-[380px] xl:min-h-[460px] bg-white shadow-[0_2px_5px_rgba(0,0,0,0.1)] rounded-xl p-2 flex flex-col
-        ${isToday ? 'hover:shadow-md hover:scale-[1.01] transition-all duration-200' : 'opacity-80'}`}
+        ${
+          isToday
+            ? "hover:shadow-md hover:scale-[1.01] transition-all duration-200"
+            : "opacity-80"
+        }`}
     >
       <div
-        className={`flex items-center justify-between ${isToday ? 'cursor-pointer' : ''}`}
+        className={`flex items-center justify-between ${
+          isToday ? "cursor-pointer" : ""
+        }`}
         onClick={isToday ? action : undefined}
       >
         <span className="text-[#5C6670] text-[16px] sm:text-lg font-semibold">
@@ -183,6 +193,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     exercises: [],
     status: false,
   });
+  const [editLogPLan, setEditLogPlan] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const calendarRef = useRef<HTMLDivElement>(null);
@@ -261,30 +272,33 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (calendarRef.current && !calendarRef.current.contains(event.target as Node)) {
+      if (
+        calendarRef.current &&
+        !calendarRef.current.contains(event.target as Node)
+      ) {
         setShowCalendar(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   const handleDateSelect = async (date: Date) => {
     setSelectedDate(date);
     setShowCalendar(false);
-    
+
     try {
       // Format date to match API expected format (YYYY-MM-DD)
-      const formattedDate = date.toLocaleDateString('en-CA', {
-        timeZone: 'America/New_York'
+      const formattedDate = date.toLocaleDateString("en-CA", {
+        timeZone: "America/New_York",
       });
 
       // Fetch health data for the selected date
       const result = await apiRequest("GET_HEALTH_DATA", {
-        queryParams: { date: formattedDate }
+        queryParams: { date: formattedDate },
       });
 
       // If no data is returned, create an empty data object
@@ -309,7 +323,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
       };
 
       // Update the dashboard data with the fetched data or empty data if undefined
-      const filteredData = result?.data ? filterData(result.data) : filterData(emptyData);
+      const filteredData = result?.data
+        ? filterData(result.data)
+        : filterData(emptyData);
       setData(filteredData);
 
       // Fetch and update weekly plan if needed
@@ -319,7 +335,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
         });
 
         const dayofweek = days[date.getDay()];
-        const workouts = result2?.data?.[dayofweek] ? filterWorkout(result2.data[dayofweek]) : [];
+        const workouts = result2?.data?.[dayofweek]
+          ? filterWorkout(result2.data[dayofweek])
+          : [];
 
         const missingWorkouts = workouts.filter(
           (workout) =>
@@ -342,25 +360,27 @@ const Dashboard: React.FC<DashboardProps> = () => {
     } catch (error) {
       console.error("Error fetching data for selected date:", error);
       // Set all data to 0 if there's an error
-      setData(filterData({
-        day_calories: 0,
-        day_steps: 0,
-        day_food: [],
-        day_workout_plan: [],
-        day_macros: {
-          protein: 0,
-          carb: 0,
-          fat: 0,
-        },
-        day_water: 0,
-        day_sleep: 0,
-        day_weight: 0,
-        day_calories_diff: 0,
-        day_sleep_diff: 0,
-        day_steps_diff: 0,
-        day_water_diff: 0,
-        previous_day: "previous day",
-      }));
+      setData(
+        filterData({
+          day_calories: 0,
+          day_steps: 0,
+          day_food: [],
+          day_workout_plan: [],
+          day_macros: {
+            protein: 0,
+            carb: 0,
+            fat: 0,
+          },
+          day_water: 0,
+          day_sleep: 0,
+          day_weight: 0,
+          day_calories_diff: 0,
+          day_sleep_diff: 0,
+          day_steps_diff: 0,
+          day_water_diff: 0,
+          previous_day: "previous day",
+        })
+      );
     }
   };
 
@@ -386,14 +406,18 @@ const Dashboard: React.FC<DashboardProps> = () => {
       const isToday = date.toDateString() === new Date().toDateString();
       const isSelected = date.toDateString() === selectedDate.toDateString();
       const isFuture = date > today;
-      
+
       days.push(
         <div
           key={`day-${i}`}
           className={`w-8 h-8 flex items-center justify-center rounded-full
-            ${isFuture ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-100'}
-            ${isToday ? 'bg-blue-100' : ''}
-            ${isSelected ? 'bg-blue-500 text-white' : ''}
+            ${
+              isFuture
+                ? "opacity-50 cursor-not-allowed"
+                : "cursor-pointer hover:bg-gray-100"
+            }
+            ${isToday ? "bg-blue-100" : ""}
+            ${isSelected ? "bg-blue-500 text-white" : ""}
           `}
           onClick={() => !isFuture && handleDateSelect(date)}
         >
@@ -487,41 +511,69 @@ const Dashboard: React.FC<DashboardProps> = () => {
               Welcome Back, {user?.first_name}
             </h1>
             <h3 className="text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
-              Here is your health overview for {isToday ? 'today' : selectedDate.toLocaleDateString()}:
+              Here is your health overview for{" "}
+              {isToday ? "today" : selectedDate.toLocaleDateString()}:
             </h3>
           </div>
           <div className="relative" ref={calendarRef}>
             <div className="relative">
-              <FaCalendarAlt 
-                className="w-7 h-7 p-1 cursor-pointer hover:bg-gray-300 rounded-full text-gray-600" 
+              <FaCalendarAlt
+                className="w-7 h-7 p-1 cursor-pointer hover:bg-gray-300 rounded-full text-gray-600"
                 onClick={() => setShowCalendar(!showCalendar)}
               />
             </div>
             {showCalendar && (
-              <div className="absolute right-0 mt-2 w-64 bg-white shadow-[0_2px_6px_rgba(13,26,38,0.15)] rounded-lg p-4 z-50" style={{ position: 'fixed', top: '100px', right: '20px' }}>
+              <div
+                className="absolute right-0 mt-2 w-64 bg-white shadow-[0_2px_6px_rgba(13,26,38,0.15)] rounded-lg p-4 z-50"
+                style={{ position: "fixed", top: "100px", right: "20px" }}
+              >
                 <div className="flex justify-between items-center mb-4">
-                  <button 
-                    onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1))}
+                  <button
+                    onClick={() =>
+                      setSelectedDate(
+                        new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth() - 1,
+                          1
+                        )
+                      )
+                    }
                     className="text-gray-600 hover:text-gray-800"
                   >
                     ←
                   </button>
                   <span className="font-semibold">
-                    {selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
+                    {selectedDate.toLocaleString("default", {
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </span>
-                  <button 
-                    onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1))}
+                  <button
+                    onClick={() =>
+                      setSelectedDate(
+                        new Date(
+                          selectedDate.getFullYear(),
+                          selectedDate.getMonth() + 1,
+                          1
+                        )
+                      )
+                    }
                     className="text-gray-600 hover:text-gray-800"
                   >
                     →
                   </button>
                 </div>
                 <div className="grid grid-cols-7 gap-1 text-center text-sm text-gray-500 mb-2">
-                  {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                    <div key={day} className="w-8 h-8 flex items-center justify-center">
-                      {day}
-                    </div>
-                  ))}
+                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                    (day) => (
+                      <div
+                        key={day}
+                        className="w-8 h-8 flex items-center justify-center"
+                      >
+                        {day}
+                      </div>
+                    )
+                  )}
                 </div>
                 <div className="grid grid-cols-7 gap-1">
                   {generateCalendarDays()}
@@ -702,12 +754,25 @@ const Dashboard: React.FC<DashboardProps> = () => {
                         >
                           {workout.status ? "Completed" : "Not Completed"}
                         </span>
-                        {isToday && (
+                        {isToday ? (
                           <span
                             className="flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
-                            onClick={() => setLogPlan(workout)}
+                            onClick={() => {
+                              setEditLogPlan(true);
+                              setLogPlan(workout);
+                            }}
                           >
                             Log Plan
+                          </span>
+                        ) : (
+                          <span
+                            className="flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
+                            onClick={() => {
+                              setEditLogPlan(false);
+                              setLogPlan(workout);
+                            }}
+                          >
+                            View Plan
                           </span>
                         )}
                       </div>
@@ -985,7 +1050,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
             </div>
             <div className="flex flex-col gap-2 items-center">
               <h2 className="text-2xl font-bold">
-                Log "{logPlan.workout_title}"
+                {editLogPLan ? "Log" : "View"} "{logPlan.workout_title}"
               </h2>
               <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px] w-full max-h-[600px] overflow-y-auto">
                 {logPlan.exercises?.map((item, exerciseIndex) => (
@@ -1010,6 +1075,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           <div>
                             <span className="w-[50px]">Weight: </span>
                             <input
+                              disabled={!editLogPLan}
                               value={set.weight ? set.weight : ""}
                               onChange={(e) => {
                                 updateLogWorkout(
@@ -1028,6 +1094,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                           <div>
                             <span className="w-[50px]">Reps: </span>
                             <input
+                              disabled={!editLogPLan}
                               value={set.reps ? set.reps : ""}
                               onChange={(e) => {
                                 updateLogWorkout(
@@ -1052,6 +1119,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
               <div className="p-4">
                 <label className="flex items-center space-x-2">
                   <input
+                    disabled={!editLogPLan}
                     type="checkbox"
                     checked={logPlan.status}
                     onChange={(e) => {
@@ -1067,7 +1135,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
               </div>
               <button
                 title="Close"
-                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px]"
+                className={`bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-[200px] ${
+                  editLogPLan ? "" : "hidden"
+                }`}
                 onClick={() => {
                   console.log("Log PLan", logPlan);
                   const missingWorkouts = data.day_workout_plan.filter(
