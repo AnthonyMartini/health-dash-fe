@@ -8,8 +8,6 @@ import DefaultAvatar from "../assets/defaultAvatar.png";
 import { useUser } from "../GlobalContext.tsx";
 import { apiService, ApiRoute } from "../utils/APIService";
 import { FaSpinner } from "react-icons/fa";
-import { FaRegSquare, FaCheckSquare } from "react-icons/fa";
-import { MdDelete } from "react-icons/md";
 
 const MOTIVATIONAL_QUOTES = [
   "The only bad workout is the one that didn't happen. - Arnold Schwarzenegger",
@@ -60,7 +58,6 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [currentQuote, setCurrentQuote] = useState("");
   const notificationRef = useRef<HTMLDivElement>(null);
-  const [hoveredGoal, setHoveredGoal] = useState<string | null>(null);
 
   useEffect(() => {
     const randomIndex = Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length);
@@ -121,14 +118,6 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
     } catch (error) {
       console.error("Error deleting notification:", error);
     }
-  };
-
-  const handleToggleGoal = (goalTitle: string) => {
-    // Implementation of handleToggleGoal
-  };
-
-  const handleDeleteGoal = (goalTitle: string) => {
-    // Implementation of handleDeleteGoal
   };
 
   return (

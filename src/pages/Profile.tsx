@@ -901,46 +901,4 @@ const DataRow: React.FC<{
   );
 };
 
-// Achievement Popup Component
-const AchievementPopup: React.FC<{
-  achievement: {
-    id: string;
-    title: string;
-    description: string;
-  };
-  onClose: () => void;
-}> = ({ achievement, onClose }) => {
-  useEffect(() => {
-    // Auto close after 5 seconds
-    const timer = setTimeout(() => {
-      onClose();
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [onClose]);
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50 animate-slide-up">
-      <div className="bg-gradient-to-r from-red-400 to-orange-400 text-white p-6 rounded-xl shadow-lg max-w-sm">
-        <div className="flex items-start gap-4">
-          <div className="bg-white/20 p-3 rounded-full">
-            <FaTrophy className="text-2xl text-white" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-xl mb-1">Achievement Unlocked! 🎉</h3>
-            <h4 className="font-semibold text-lg mb-1">{achievement.title}</h4>
-            <p className="text-white/90">{achievement.description}</p>
-          </div>
-          <button 
-            onClick={onClose}
-            className="text-white/80 hover:text-white"
-          >
-            <FaTimes />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export default Profile;
