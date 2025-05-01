@@ -298,7 +298,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
       // Fetch health data for the selected date
       const result = await apiService.request("GET_HEALTH_DATA", {
-        queryParams: { date: formattedDate }
+        queryParams: { date: formattedDate },
       });
 
       // If no data is returned, create an empty data object
@@ -507,7 +507,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
         cleanUpdate.day_macros = {
           protein: macros.protein || 0,
           carb: macros.carb || 0,
-          fat: macros.fat || 0
+          fat: macros.fat || 0,
         };
       }
     }
@@ -845,8 +845,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
                   logMetric === "Calories"
                     ? "10000"
                     : logMetric === "Steps"
-                    ? "30000"
-                    : "15"
+                      ? "30000"
+                      : logMetric === "Weight"
+                        ? "400"
+                        : "15"
                 }`}
                 value={logMetricValue ? logMetricValue : ""}
                 onChange={(e) => {
@@ -857,8 +859,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
                       (logMetric === "Calories"
                         ? 10000
                         : logMetric === "Steps"
-                        ? 30000
-                        : 15)
+                          ? 30000
+                          : logMetric === "Weight"
+                            ? 400
+                            : 15)
                   ) {
                     setLogMetricValue(value);
                   } else {
