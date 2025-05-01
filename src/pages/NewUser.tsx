@@ -8,6 +8,10 @@ import { useNavigate } from "react-router-dom";
 
 const NewUserPage: React.FC = () => {
   const navigate = useNavigate();
+
+  // ✅ State for validation errors
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState({
     username: "",
     first_name: "",
@@ -19,6 +23,35 @@ const NewUserPage: React.FC = () => {
     height: "",
   });
 
+  const validateEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const emailPattern =
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|co|io|info|biz|me)$/i;
+
+    if (!emailPattern.test(e.target.value)) {
+      setEmailError("Invalid email format.");
+      return false;
+    }
+    handleChange({
+      target: { name: e.target.name, value: e.target.value.toLowerCase() },
+    } as React.ChangeEvent<HTMLInputElement>);
+    setEmailError(null);
+    return true;
+  };
+
+  // ✅ Phone validation and formatting function
+  const validatePhone = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // ✅ Allow formats like: 1234567890, 123-456-7890, 123.456.7890, +1 (123) 456-7890
+    const phonePattern = /^\+?[1-9]\d{1,14}$/;
+
+    if (!phonePattern.test(e.target.value)) {
+      setPhoneError("Invalid phone format.");
+      return false;
+    }
+    handleChange(e);
+    setPhoneError(null);
+    return true;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUserDetails({
       ...userDetails,
@@ -26,7 +59,7 @@ const NewUserPage: React.FC = () => {
     });
   };
   return (
-    <div className="h-full w-full flex flex-col items-center p-4">
+    <div className="h-full w-full flex flex-col items-center p-4 overflow-y-auto">
       <h1 className="text-2xl sm:text-3xl font-bold mb-2">
         Create User Profile
       </h1>
@@ -37,16 +70,15 @@ const NewUserPage: React.FC = () => {
           type="text"
           name="username"
           placeholder="Username"
-          value={userDetails.username}
           onChange={handleChange}
           className="block w-full p-2 mb-2 border rounded"
         />
+
         <label className="block mb-1 font-bold">First Name</label>
         <input
           type="text"
           name="first_name"
           placeholder="First Name"
-          value={userDetails.first_name}
           onChange={handleChange}
           className="block w-full p-2 mb-2 border rounded"
         />
@@ -55,7 +87,6 @@ const NewUserPage: React.FC = () => {
           type="text"
           name="last_name"
           placeholder="Last Name"
-          value={userDetails.last_name}
           onChange={handleChange}
           className="block w-full p-2 mb-2 border rounded"
         />
@@ -64,25 +95,28 @@ const NewUserPage: React.FC = () => {
           type="email"
           name="email"
           placeholder="Email"
-          value={userDetails.email}
-          onChange={handleChange}
+          onChange={validateEmail}
           className="block w-full p-2 mb-2 border rounded"
         />
+        {emailError && (
+          <p className="text-red-500 text-sm mb-2">{emailError}</p>
+        )}
         <label className="block mb-1 font-bold">Phone #</label>
         <input
           type="text"
           name="phone"
           placeholder="+###########"
-          value={userDetails.phone}
-          onChange={handleChange}
+          onChange={validatePhone}
           className="block w-full p-2 mb-2 border rounded"
         />
+        {phoneError && (
+          <p className="text-red-500 text-sm mb-2">{phoneError}</p>
+        )}
         <label className="block mb-1 font-bold">Height (cm)</label>
         <input
           type="number"
           name="height"
           placeholder="Height (cm)"
-          value={userDetails.height}
           onChange={handleChange}
           className="block w-full p-2 mb-2 border rounded"
         />
@@ -91,7 +125,6 @@ const NewUserPage: React.FC = () => {
           type="date"
           title="date"
           name="date"
-          value={userDetails.birthdate}
           onChange={(e) =>
             setUserDetails({
               ...userDetails,
@@ -103,7 +136,6 @@ const NewUserPage: React.FC = () => {
         <label className="block mb-1 font-bold">Gender</label>
         <select
           title="gender"
-          value={userDetails.gender ? "Male" : "Female"}
           onChange={(e) =>
             setUserDetails({
               ...userDetails,
@@ -156,7 +188,9 @@ const NewUserPage: React.FC = () => {
               userDetails.email === "" ||
               userDetails.phone === "" ||
               userDetails.height === "" ||
-              userDetails.birthdate === ""
+              userDetails.birthdate === "" ||
+              emailError !== null ||
+              phoneError !== null
             }
             className={`px-4 py-2 text-white rounded-full shadow-md transition ${
               !(
@@ -166,7 +200,9 @@ const NewUserPage: React.FC = () => {
                 userDetails.email === "" ||
                 userDetails.phone === "" ||
                 userDetails.height === "" ||
-                userDetails.birthdate === ""
+                userDetails.birthdate === "" ||
+                emailError !== null ||
+                phoneError !== null
               )
                 ? "bg-blue-500 hover:bg-blue-600"
                 : "bg-gray-400 cursor-not-allowed"

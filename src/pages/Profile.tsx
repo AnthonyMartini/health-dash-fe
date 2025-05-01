@@ -59,40 +59,58 @@ const AchievementCard: React.FC<{
   const date = userAchievement?.date || userAchievement?.last_log_date;
 
   return (
-    <div className={`p-4 rounded-lg border ${isCompleted ? 'border-transparent bg-gradient-to-r from-red-400 to-orange-400' : 'border-gray-200 bg-gray-50'}`}>
+    <div
+      className={`p-4 rounded-lg border ${isCompleted ? "border-transparent bg-gradient-to-r from-red-400 to-orange-400" : "border-gray-200 bg-gray-50"}`}
+    >
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-full ${isCompleted ? 'bg-white/20' : 'bg-gray-300'}`}>
-          <FaTrophy className={`text-xl ${isCompleted ? 'text-white' : 'text-gray-500'}`} />
+        <div
+          className={`p-2 rounded-full ${isCompleted ? "bg-white/20" : "bg-gray-300"}`}
+        >
+          <FaTrophy
+            className={`text-xl ${isCompleted ? "text-white" : "text-gray-500"}`}
+          />
         </div>
         <div className="flex-1">
-          <h3 className={`font-semibold ${isCompleted ? 'text-white' : 'text-gray-700'}`}>
+          <h3
+            className={`font-semibold ${isCompleted ? "text-white" : "text-gray-700"}`}
+          >
             {achievement.title}
           </h3>
-          <p className={`text-sm ${isCompleted ? 'text-white/90' : 'text-gray-500'}`}>
+          <p
+            className={`text-sm ${isCompleted ? "text-white/90" : "text-gray-500"}`}
+          >
             {achievement.description}
           </p>
-          {achievement.type === 'streak' && (
+          {achievement.type === "streak" && (
             <div className="mt-2">
               <div className="w-full bg-white/20 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full ${isCompleted ? 'bg-white' : 'bg-gray-400'}`}
-                  style={{ width: `${Math.min((progress / achievement.target) * 100, 100)}%` }}
+                  className={`h-2 rounded-full ${isCompleted ? "bg-white" : "bg-gray-400"}`}
+                  style={{
+                    width: `${Math.min((progress / achievement.target) * 100, 100)}%`,
+                  }}
                 />
               </div>
-              <p className={`text-xs mt-1 ${isCompleted ? 'text-white/90' : 'text-gray-500'}`}>
+              <p
+                className={`text-xs mt-1 ${isCompleted ? "text-white/90" : "text-gray-500"}`}
+              >
                 {progress}/{achievement.target} days
               </p>
             </div>
           )}
-          {achievement.type === 'quantity' && (
+          {achievement.type === "quantity" && (
             <div className="mt-2">
               <div className="w-full bg-white/20 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full ${isCompleted ? 'bg-white' : 'bg-gray-400'}`}
-                  style={{ width: `${Math.min((progress / achievement.target) * 100, 100)}%` }}
+                  className={`h-2 rounded-full ${isCompleted ? "bg-white" : "bg-gray-400"}`}
+                  style={{
+                    width: `${Math.min((progress / achievement.target) * 100, 100)}%`,
+                  }}
                 />
               </div>
-              <p className={`text-xs mt-1 ${isCompleted ? 'text-white/90' : 'text-gray-500'}`}>
+              <p
+                className={`text-xs mt-1 ${isCompleted ? "text-white/90" : "text-gray-500"}`}
+              >
                 {progress}/{achievement.target}
               </p>
             </div>
@@ -165,7 +183,8 @@ const Profile: React.FC = () => {
   // ✅ Email validation function
   const validateEmail = (value: string) => {
     const emailPattern =
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|co|io|info|biz|me)$/;
+      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.(com|org|net|edu|gov|mil|co|io|info|biz|me)$/i;
+
     if (!emailPattern.test(value)) {
       setEmailError("Invalid email format.");
       return false;
@@ -280,14 +299,16 @@ const Profile: React.FC = () => {
         // ✅ Build request body
         const updatedUserData = {
           nickname: username || "",
-          user_profile_picture_url: uploadedImageUrl || "",
-          email: email || "",
+          email: email?.toLowerCase() || "",
           phone: phone || "",
           birthdate: birthDate || "",
           gender: gender === "Male" ? true : false,
           height: height ? parseFloat(height) : 0,
           first_name: firstName || "",
           last_name: lastName || "",
+          ...(uploadedImageUrl
+            ? { user_profile_picture_url: uploadedImageUrl }
+            : {}),
         };
 
         console.log("Request Body:", updatedUserData);
@@ -296,6 +317,8 @@ const Profile: React.FC = () => {
         updateUser({
           ...updatedUserData,
           height: height || "0",
+          user_profile_picture_url:
+            updatedUserData.user_profile_picture_url || "",
         });
         setNewProfileImage(null); // Clear temp image
 
@@ -353,9 +376,12 @@ const Profile: React.FC = () => {
           })();
 
             console.log("📤 Sending subscription to backend...");
-            const response = await apiService.request("SUBSCRIBE_NOTIFICATION", {
-            body: { subscription, device, browser },
-          });
+            const response = await apiService.request(
+              "SUBSCRIBE_NOTIFICATION",
+              {
+                body: { subscription, device, browser },
+              }
+            );
             console.log("✅ Backend response:", response);
         } else {
             console.log("ℹ️ Subscription already exists");
@@ -531,7 +557,6 @@ const Profile: React.FC = () => {
               icon={<MdEmail />}
               label="Push Notification"
               value={""}
-              onChange={setEmail}
               isBold
               onToggle={handleToggleNotification}
               toggle={notificationToggle}
@@ -606,7 +631,9 @@ const Profile: React.FC = () => {
 
         {/* Achievements Section */}
         <div className="mt-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Achievements</h2>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Achievements
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Object.values(ACHIEVEMENTS).map((achievement) => (
               <AchievementCard

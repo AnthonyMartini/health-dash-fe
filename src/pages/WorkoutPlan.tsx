@@ -150,10 +150,10 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
               key={idx}
               className={`rounded-[10px] px-3 py-2 w-full flex items-center justify-between ${colors.bg}`}
             >
-              <span className={`text-xs ${colors.text}`}>
+              <span className={`text-xs ${colors.text} flex-1 pr-2 break-words`}>
                 {item.title}
               </span>
-              <span className={`text-xs ${colors.text}`}>
+              <span className={`text-xs ${colors.text} whitespace-nowrap`}>
                 {item.sets} Sets
               </span>
             </div>
