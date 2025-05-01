@@ -189,7 +189,6 @@ const NewUserPage: React.FC = () => {
               userDetails.email === "" ||
               userDetails.phone === "" ||
               userDetails.height === "" ||
-              userDetails.weight === "" ||
               userDetails.birthdate === "" ||
               emailError !== null ||
               phoneError !== null
@@ -202,7 +201,6 @@ const NewUserPage: React.FC = () => {
                 userDetails.email === "" ||
                 userDetails.phone === "" ||
                 userDetails.height === "" ||
-                userDetails.weight === "" ||
                 userDetails.birthdate === "" ||
                 emailError !== null ||
                 phoneError !== null

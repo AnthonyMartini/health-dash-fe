@@ -299,7 +299,6 @@ const Profile: React.FC = () => {
         // ✅ Build request body
         const updatedUserData = {
           nickname: username || "",
-          user_profile_picture_url: uploadedImageUrl || "",
           email: email?.toLowerCase() || "",
           phone: phone || "",
           birthdate: birthDate || "",
@@ -307,6 +306,9 @@ const Profile: React.FC = () => {
           height: height ? parseFloat(height) : 0,
           first_name: firstName || "",
           last_name: lastName || "",
+          ...(uploadedImageUrl
+            ? { user_profile_picture_url: uploadedImageUrl }
+            : {}),
         };
 
         console.log("Request Body:", updatedUserData);
