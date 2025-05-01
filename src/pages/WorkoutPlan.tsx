@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
-import { FaFireAlt } from "react-icons/fa";
+// import { FaFireAlt } from "react-icons/fa";
 import { BsSuitHeartFill } from "react-icons/bs";
 import { apiService } from "../utils/APIService";
 import { CiTrash } from "react-icons/ci";
@@ -104,47 +104,48 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
 
     {/* Items (chips) */}
     <div className="flex flex-wrap gap-1 h-[100px] overflow-y-auto px-1 content-start">
-      {plan.workoutcard_content.exercises.map((item, idx) => (
-        <div
-          key={idx}
-          className="rounded-lg px-2 py-1 text-sm font-semibold w-full h-[30px] flex bg-[#42b0f5]"
-        >
-          <span className="flex-1 ">{item.title}</span>
+    {plan.workoutcard_content.exercises.map((item, idx) => {
+  const bgColors = ["bg-[#d5fef4]", "bg-[#dbeafe]", "bg-[#fef3c7]"];
+  const bgColor = bgColors[idx % bgColors.length];
 
-          <span className="ml-2 text-gray-700">
-            {item.sets.toString()} Sets
-          </span>
-        </div>
-      ))}
+  return (
+    <div
+      key={idx}
+      className={`rounded-lg px-2 py-1 text-sm font-semibold w-full h-[30px] flex items-center justify-between ${bgColor}`}
+    >
+      <span className="truncate">{item.title}</span>
+      <span className="ml-2 text-gray-700 whitespace-nowrap">{item.sets} Sets</span>
+    </div>
+  );
+})}
+
+
     </div>
 
-    {/* Footer row: calorie + + button */}
-    <div className="flex justify-between items-center">
-      <div className="flex items-center gap-1 text-sm text-black">
-        <div className="stroke-amber-700">
-          {plan.trash && (
-            <CiTrash
-              size={20}
-              color="red"
-              className="cursor-pointer"
-              onClick={() => {
-                setConfirmDelete(plan.workoutcard_id);
-              }}
-            />
-          )}
-        </div>
-        <FaFireAlt />
-        <span>{120} cal</span>
-      </div>
-      {onAddToWeekPlan && (
-        <button
-          className="text-blue-600 text-lg hover:scale-105"
-          onClick={() => onAddToWeekPlan(plan.workoutcard_title)}
-        >
-          +
-        </button>
-      )}
-    </div>
+    {/* Footer row: delete icon + + button */}
+<div className="flex justify-between items-center">
+  <div>
+    {plan.trash && (
+      <CiTrash
+        size={20}
+        color="red"
+        className="cursor-pointer"
+        onClick={() => {
+          setConfirmDelete(plan.workoutcard_id);
+        }}
+      />
+    )}
+  </div>
+  {onAddToWeekPlan && (
+    <button
+    className="text-blue-600 text-lg hover:scale-105 cursor-pointer"
+    onClick={() => onAddToWeekPlan(plan.workoutcard_title)}
+  >
+    +
+  </button>
+  )}
+</div>
+
   </div>
 );
 
@@ -309,7 +310,6 @@ const WorkoutPlan: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-bold">Your Week Plan</h2>
             <button
               onClick={() => {
-                // e.g. open a "Log Workout" modal, or navigate somewhere
                 console.log("Log Workout clicked!");
               }}
               className="text-red-500 text-sm hover:underline"
@@ -318,42 +318,41 @@ const WorkoutPlan: React.FC = () => {
             </button>
           </div>
           <div className="bg-white shadow p-4 rounded-xl">
-            <div className="grid grid-cols-7 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 text-sm">
               {weeklyPlan.map((wDay) => (
                 <div
                   key={wDay.day}
                   className="flex flex-col items-center gap-2"
                 >
-                  <h3 className="text-gray-600 font-bold">{wDay.day}</h3>
-                  <div className="bg-white shadow p-2 rounded-lg w-full min-h-[60px] space-y-1">
+                  <h3 className="text-gray-600 font-bold text-center text-xs sm:text-sm">
+                    {wDay.day}
+                  </h3>
+                  <div className="bg-white shadow p-2 rounded-lg w-full min-h-[60px] space-y-1 text-center">
                     {wDay.plans.length === 0 && (
-                      <p className="text-xs text-gray-400 text-center">
-                        No plans
-                      </p>
+                      <p className="text-xs text-gray-400">No plans</p>
                     )}
                     {wDay.plans.map((pName, idx) => (
                       <div
                         key={idx}
-                        className={`bg-red-100 text-red-500 text-xs rounded px-2 py-1 text-center font-semibold flex justify-between`}
+                        className="bg-red-100 text-red-500 text-xs rounded px-2 py-1 font-semibold flex justify-between items-center"
                       >
-                        <span>{pName.workoutcard_title}</span>
+                        <span className="whitespace-normal break-words w-full text-left">
+  {pName.workoutcard_title}
+</span>
 
                         <CiTrash
                           size={16}
-                          className="cursor-pointer"
+                          className="cursor-pointer shrink-0"
                           onClick={() => {
                             async function sendData() {
                               try {
-                                //delete card on DB
                                 await apiService.request("DELETE_WEEKLY_PLAN", {
                                   body: {
                                     workoutcard_id: pName.workoutcard_id,
                                     day_of_week: dayMapping[wDay.day],
                                   },
                                 });
-                              } catch {
-                                /*NOOP*/
-                              }
+                              } catch {}
                             }
                             sendData();
                             setWeeklyPlan((prevWeeklyPlan) =>
@@ -378,6 +377,8 @@ const WorkoutPlan: React.FC = () => {
             </div>
           </div>
         </div>
+
+
       </div>
 
       {/* MODAL: Add a plan to a day */}
