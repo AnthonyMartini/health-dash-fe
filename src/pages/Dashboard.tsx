@@ -1325,7 +1325,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
 
       {logPlan.workout_title != "" && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white p-2 rounded-2xl shadow-lg w-[450px] max-h-[700px] text-center relative  ">
+          <div className="bg-white p-2 rounded-2xl shadow-lg w-[450px] max-h-[600px] text-center relative  ">
             <div className="flex justify-end h-[30px] items-start">
               <button
                 title="Close"
@@ -1345,7 +1345,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
               <h2 className="text-2xl font-bold">
                 {editLogPLan ? "Log" : "View"} "{logPlan.workout_title}"
               </h2>
-              <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px] w-full max-h-[600px] overflow-y-auto">
+              <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px] w-full max-h-[400px] overflow-y-auto">
                 {logPlan.exercises?.map((item, exerciseIndex) => (
                   <div className="text-[#FFA500] bg-[#FCF2E9] rounded-lg p-2">
                     <div
