@@ -529,10 +529,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
       <div className="h-full flex-1 p-4 overflow-clip bg-gray-50/90 overflow-y-scroll">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold h-[40px]">
+            <h1 className="text-2xl sm:text-3xl font-bold h-[40px] pb-2">
               Welcome Back, {user?.first_name}
             </h1>
-            <h3 className="text-[13px] sm:text-[18px] font-semibold text-[#5C6670] h-[40px]">
+            <h3 className="text-base font-semibold text-[#5C6670] h-[40px]">
               Here is your health overview for{" "}
               {isToday ? "today" : selectedDate.toLocaleDateString()}:
             </h3>
@@ -696,7 +696,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
           </div>
           <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap">
             <ContentCard
-              title="Today's Consumption"
+              title={`${isToday ? "Today's" : selectedDate.toLocaleDateString()}'s Consumption`}
               action={() => setLogConsumption(true)}
               actionText={isToday ? "Add Consumption" : undefined}
               content={
@@ -756,66 +756,71 @@ const Dashboard: React.FC<DashboardProps> = () => {
               isToday={isToday}
             />
             <ContentCard
-              title="Today's Workout Plan"
+              title={`${isToday ? "Today's" : selectedDate.toLocaleDateString()}'s Workout Plan`}
               action={() => navigate("/workout-plan")}
               content={
-                <div className="w-full flex-1 rounded-lg gap-2 flex flex-col p-2">
-                  {data.day_workout_plan?.map((workout, index) => (
-                    <div
-                      key={`item-${index}`}
-                      className="w-full flex flex-col shadow-lg p-2 gap-1 bg-[#f7f7f7] rounded-lg"
-                    >
-                      <div className="flex-1 flex text-[14px] sm:text-[16px]">
-                        <span className="font-semibold flex-1">
-                          {workout.workout_title}
-                        </span>
-                        <span
-                          className={`w-[115px] ${
-                            workout.status ? "text-green-600" : "text-red-500"
-                          }`}
-                        >
-                          {workout.status ? "Completed" : "Not Completed"}
-                        </span>
-                        {isToday ? (
-                          <span
-                            className="flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
-                            onClick={() => {
-                              setEditLogPlan(true);
-                              setLogPlan(workout);
-                            }}
-                          >
-                            Log Plan
-                          </span>
-                        ) : (
-                          <span
-                            className="flex-1 text-right text-red-500 hover:underline hover:cursor-pointer"
-                            onClick={() => {
-                              setEditLogPlan(false);
-                              setLogPlan(workout);
-                            }}
-                          >
-                            View Plan
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-col text-sm font-bold gap-2 text-[12px] sm:text-[14px]">
-                        {workout.exercises?.map((item, index) => (
-                          <div
-                            key={`item-${index}`}
-                            className="text-[#FFA500] bg-[#FCF2E9] h-[30px] flex items-center rounded-lg px-2"
-                          >
-                            <span className="flex-1">{item.title}</span>
-                            <span className="">
-                              {item.set_count}{" "}
-                              {workout.workout_title === "cardio"
-                                ? "minutes"
-                                : "sets"}
+                <div className={`w-full flex-1 rounded-[20px] gap-2 flex flex-col p-2 ${data.day_workout_plan?.length ? "bg-[rgba(239,240,240,0.3)]" : ""}`}>
+                  {data.day_workout_plan?.length ? (
+                    data.day_workout_plan.map((workout, index) => (
+                      <div
+                        key={`item-${index}`}
+                        className="w-full flex flex-col gap-2"
+                      >
+                        <div className="flex items-center gap-2.5 h-[40px]">
+                          <div className="w-4 h-4 bg-[#FF9500] rounded-full" />
+                          <div className="flex-1">
+                            <span className="text-[16px] leading-[19px] tracking-[0.01em] font-semibold text-[#5C6670]">
+                              {workout.workout_title}
                             </span>
                           </div>
-                        ))}
+                          <div className="flex items-center gap-2.5">
+                            <span className={`text-[16px] leading-[19px] tracking-[0.01em] ${workout.status ? "text-[#FF9500]" : "text-[#FF9500]"}`}>
+                              {workout.status ? "Completed" : "In-Progress"}
+                            </span>
+                            {isToday && (
+                              <span
+                                className="text-[16px] leading-[19px] tracking-[0.01em] text-[#DF1111] hover:underline hover:cursor-pointer"
+                                onClick={() => {
+                                  setEditLogPlan(true);
+                                  setLogPlan(workout);
+                                }}
+                              >
+                                Log Plan
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2.5 pl-5">
+                          {workout.exercises?.map((item, idx) => {
+                            const colorCombinations = [
+                              { bg: "bg-[#E6EEFE]", text: "text-[#007AFF]" }, // Blue
+                              { bg: "bg-[#D6F5DB]", text: "text-[#34C759]" }, // Green
+                              { bg: "bg-[#FCF2E9]", text: "text-[#FF9500]" }, // Orange
+                            ];
+                            const colors = colorCombinations[idx % colorCombinations.length];
+
+                            return (
+                              <div
+                                key={`exercise-${idx}`}
+                                className={`flex justify-between items-center px-2.5 py-2.5 rounded-[10px] w-full ${colors.bg}`}
+                              >
+                                <span className={`text-[16px] leading-[19px] tracking-[0.01em] font-semibold ${colors.text}`}>
+                                  {item.title}
+                                </span>
+                                <span className={`text-[16px] leading-[19px] tracking-[0.01em] ${colors.text}`}>
+                                  {item.set_count} sets
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
                       </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-400 py-4">
+                      No workout plans for {isToday ? "today" : selectedDate.toLocaleDateString()}
                     </div>
-                  ))}
+                  )}
                 </div>
               }
               isToday={isToday}

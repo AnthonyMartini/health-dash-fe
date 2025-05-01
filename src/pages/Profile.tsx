@@ -364,16 +364,16 @@ const Profile: React.FC = () => {
             });
             console.log("✅ New Push Subscription created:", subscription);
 
-            const device = /Mobi|Android/i.test(navigator.userAgent)
-              ? "mobile"
-              : "desktop";
+          const device = /Mobi|Android/i.test(navigator.userAgent)
+            ? "mobile"
+            : "desktop";
 
-            const browser = (() => {
-              if (navigator.userAgent.includes("Chrome")) return "chrome";
-              if (navigator.userAgent.includes("Firefox")) return "firefox";
-              if (navigator.userAgent.includes("Safari")) return "safari";
-              return "unknown";
-            })();
+          const browser = (() => {
+            if (navigator.userAgent.includes("Chrome")) return "chrome";
+            if (navigator.userAgent.includes("Firefox")) return "firefox";
+            if (navigator.userAgent.includes("Safari")) return "safari";
+            return "unknown";
+          })();
 
             console.log("📤 Sending subscription to backend...");
             const response = await apiService.request(
@@ -383,7 +383,7 @@ const Profile: React.FC = () => {
               }
             );
             console.log("✅ Backend response:", response);
-          } else {
+        } else {
             console.log("ℹ️ Subscription already exists");
           }
         } else {
@@ -394,7 +394,7 @@ const Profile: React.FC = () => {
 
             await apiService.request("UNSUBSCRIBE_NOTIFICATION", {
               body: { device: "desktop", browser: "chrome" },
-            });
+          });
             console.log("✅ Push subscription removed from backend");
           }
         }
@@ -557,7 +557,6 @@ const Profile: React.FC = () => {
               icon={<MdEmail />}
               label="Push Notification"
               value={""}
-              onChange={setEmail}
               isBold
               onToggle={handleToggleNotification}
               toggle={notificationToggle}
