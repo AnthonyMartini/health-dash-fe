@@ -325,11 +325,6 @@ const WorkoutPlan: React.FC = () => {
       <SideBar SelectedPage="Workout Plan" />
 
       <div className="flex-1 p-4 bg-gray-50 overflow-y-auto">
-        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Workout Plan</h1>
-        <h3 className="text-sm sm:text-md font-semibold text-gray-600 mb-6">
-          Customize your workouts and discover new plans
-        </h3>
-
         {/* SECTION 1: Your Favorite Plans */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
