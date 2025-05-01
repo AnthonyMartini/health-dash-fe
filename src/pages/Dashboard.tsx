@@ -345,11 +345,60 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [weightEmbedUrl, setWeightEmbedUrl] = useState("");
   const [macrosEmbedUrl, setMacrosEmbedUrl] = useState("");
 
+  function getTotalMacros(arr: FoodItemProps[]): {
+    protein: number;
+    carb: number;
+    fat: number;
+  } {
+    const total = { protein: 0, carb: 0, fat: 0, calories: 0 };
+    arr.forEach((item) => {
+      total.protein += item.macros.protein;
+      total.fat += item.macros.fat;
+      total.carb += item.macros.carb;
+      total.calories += item.calories;
+    });
+    setProgressData([
+      {
+        target: 100,
+        amount: total.protein,
+        color: "stroke-[#FFA500]",
+        blobcolor: "bg-[#FFA500]",
+        trackColor: "stroke-[#fadfaf]",
+        label: "Prot",
+      }, // Bar 1 (outermost)
+      {
+        target: 200,
+        amount: total.carb,
+        color: "stroke-[#007AFF]",
+        blobcolor: "bg-[#007AFF]",
+        trackColor: "stroke-[#b8daff]",
+        label: "Carbs",
+      }, // Bar 2
+      {
+        target: 50,
+        amount: total.fat,
+        color: "stroke-[#AF52DE]",
+        blobcolor: "bg-[#AF52DE]",
+        trackColor: "stroke-[#cda6e0]",
+        label: "Fat",
+      }, // Bar 3
+      {
+        target: 1000,
+        amount: total.calories,
+        color: "stroke-[#37ed37]",
+        blobcolor: "bg-[#37ed37]",
+        trackColor: "stroke-[#c8fac8]",
+        label: "Cal",
+      },
+    ]);
+    return total;
+  }
+
   const [progressData, setProgressData] = useState([
     // Match colors from the image provided (Orange, Blue, Purple, Indigo)
     {
       target: 100,
-      amount: 75,
+      amount: 0,
       color: "stroke-[#FFA500]",
       blobcolor: "bg-[#FFA500]",
       trackColor: "stroke-[#fadfaf]",
@@ -357,7 +406,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     }, // Bar 1 (outermost)
     {
       target: 200,
-      amount: 150,
+      amount: 0,
       color: "stroke-[#007AFF]",
       blobcolor: "bg-[#007AFF]",
       trackColor: "stroke-[#b8daff]",
@@ -365,7 +414,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     }, // Bar 2
     {
       target: 50,
-      amount: 10,
+      amount: 0,
       color: "stroke-[#AF52DE]",
       blobcolor: "bg-[#AF52DE]",
       trackColor: "stroke-[#cda6e0]",
@@ -373,7 +422,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
     }, // Bar 3
     {
       target: 1000,
-      amount: 400,
+      amount: 0,
       color: "stroke-[#37ed37]",
       blobcolor: "bg-[#37ed37]",
       trackColor: "stroke-[#c8fac8]",
@@ -395,6 +444,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
         });
         console.log("Fetched today's workouts:", result.data.day_workout_plan);
         filteredData = filterData(result.data);
+        getTotalMacros(result.data.day_food || []);
       } catch {
         filteredData = filterData({});
       }
