@@ -15,59 +15,59 @@ const App: React.FC = () => {
       <AchievementProvider>
         <ApiProvider>
           <AchievementPopup />
-          <Routes>
-            {/* Routes with Sidebar */}
-            <Route path="" element={<Layout />}>
-              <Route
-                index
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/workout-plan"
-                element={
-                  <ProtectedRoute>
-                    <WorkoutPlan />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/new-user"
-                element={
-                  <Redirect>
-                    <NewUserPage />
-                  </Redirect>
-                }
-              />
-              <Route
-                path="/*"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-            </Route>
-          </Routes>
+      <Routes>
+        {/* Routes with Sidebar */}
+        <Route path="" element={<Layout />}>
+          <Route
+            index
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/workout-plan"
+            element={
+              <ProtectedRoute>
+                <WorkoutPlan />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/new-user"
+            element={
+              <Redirect>
+                <NewUserPage />
+              </Redirect>
+            }
+          />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
         </ApiProvider>
       </AchievementProvider>
     </Router>

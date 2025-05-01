@@ -2,8 +2,8 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { fetchAuthSession } from "@aws-amplify/auth";
 
 const BASE_URL =
-  "https://34pdw0bjyi.execute-api.us-east-1.amazonaws.com/default/api";
-  // "http://localhost:8000/api";
+  // "https://34pdw0bjyi.execute-api.us-east-1.amazonaws.com/default/api";
+  "http://localhost:8000/api";
 
 export const API_METHODS = {
   GET: "GET",
@@ -34,6 +34,7 @@ export const API_ROUTES = {
   QUICKSIGHT: { path: "/quicksight", method: API_METHODS.GET },
   GET_NOTIFICATIONS: { path: "/user-profile/notifications", method: API_METHODS.GET },
   DELETE_NOTIFICATION: { path: "/user-profile/notifications", method: API_METHODS.DELETE },
+  FAVORITE_WORKOUT: { path: "/workoutplan-card-fav", method: API_METHODS.POST },
 } as const;
 
 export type ApiRoute = keyof typeof API_ROUTES;

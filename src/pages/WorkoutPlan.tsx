@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import SideBar from "../components/SideBar";
 // import { FaFireAlt } from "react-icons/fa";
-import { BsSuitHeartFill } from "react-icons/bs";
-import { apiService } from "../utils/APIService";
+import { BsSuitHeart, BsSuitHeartFill } from "react-icons/bs";
 import { CiTrash } from "react-icons/ci";
+import { apiService } from "../utils/APIService";
 
 /* ------------- DATA TYPES & MOCK ARRAYS ------------- */
 
@@ -24,6 +24,7 @@ interface PlanProps {
   favorite?: boolean; // whether to show the heart icon
   workoutcard_content: { exercises: ExerciseProps[] };
   trash: boolean;
+  is_favorited?: boolean;
 }
 
 const filterPlans = (edit: boolean, dataArray: any[]): PlanProps[] => {
@@ -35,6 +36,7 @@ const filterPlans = (edit: boolean, dataArray: any[]): PlanProps[] => {
     username: data.username ?? "",
     favorite: true,
     trash: edit,
+    is_favorited: data.is_favorited ?? false,
     workoutcard_content: {
       exercises: Array.isArray(data.workoutcard_content?.exercises)
         ? data.workoutcard_content.exercises
@@ -79,18 +81,51 @@ interface SmallPlanCardProps {
   plan: PlanProps;
   onAddToWeekPlan?: (planName: string) => void;
   setConfirmDelete: (planID: string) => void;
+  onFavorite?: (plan: PlanProps) => void;
+  showFavoriteButton?: boolean;
 }
 const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
   plan,
   onAddToWeekPlan,
   setConfirmDelete,
-}) => (
-  <div className="w-full sm:w-[230px] bg-white shadow-md rounded-xl p-3 flex flex-col gap-2 justify-between">
-    {/* Title & Heart */}
-    <div className="flex justify-between items-center">
-      <div className="flex flex-col">
+  onFavorite,
+  showFavoriteButton = false,
+}) => {
+  const [isHeartHovered, setIsHeartHovered] = useState(false);
+
+  const handleHeartClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Only allow unfavoriting if it's a favorited card (not user-created)
+    if (onFavorite && (plan.is_favorited || !plan.trash)) {
+      onFavorite(plan);
+    }
+  };
+
+  return (
+    <div className="w-full sm:w-[230px] bg-white shadow-md rounded-xl p-3 flex flex-col gap-2 justify-between relative">
+      {/* Heart Icon - Absolute Positioned */}
+      {(plan.trash || showFavoriteButton) && (
+        <div
+          className="absolute top-3 right-3 cursor-pointer"
+          onMouseEnter={() => setIsHeartHovered(true)}
+          onMouseLeave={() => setIsHeartHovered(false)}
+          onClick={handleHeartClick}
+        >
+          {isHeartHovered ? (
+            <BsSuitHeart className="text-red-500" />
+          ) : (
+            <BsSuitHeartFill className="text-red-500" />
+          )}
+        </div>
+      )}
+
+      {/* Title */}
+      <div className="flex flex-col pr-8">
         <span className="text-sm font-bold text-black w-full">
           {plan.workoutcard_title}
+          {plan.is_favorited && (
+            <span className="ml-1 text-xs text-gray-500">(Favorited)</span>
+          )}
         </span>
         {plan.username && (
           <span className="text-xs text-gray-500">
@@ -99,55 +134,59 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
         )}
       </div>
 
-      {plan.trash && <BsSuitHeartFill className="text-red-500" />}
-    </div>
+      {/* Items (chips) */}
+      <div className="flex flex-wrap gap-2 h-[115px] overflow-y-auto px-1 content-start">
+        {plan.workoutcard_content.exercises.map((item, idx) => {
+          // Define the three color combinations
+          const colorCombinations = [
+            { bg: "bg-[#E6EEFE]", text: "text-[#007AFF]" }, // Blue
+            { bg: "bg-[#D6F5DB]", text: "text-[#34C759]" }, // Green
+            { bg: "bg-[#FCF2E9]", text: "text-[#FF9500]" }, // Orange
+          ];
+          const colors = colorCombinations[idx % colorCombinations.length];
 
-    {/* Items (chips) */}
-    <div className="flex flex-wrap gap-1 h-[100px] overflow-y-auto px-1 content-start">
-    {plan.workoutcard_content.exercises.map((item, idx) => {
-  const bgColors = ["bg-[#d5fef4]", "bg-[#dbeafe]", "bg-[#fef3c7]"];
-  const bgColor = bgColors[idx % bgColors.length];
+          return (
+            <div
+              key={idx}
+              className={`rounded-[10px] px-3 py-2 w-full flex items-center justify-between ${colors.bg}`}
+            >
+              <span className={`text-xs ${colors.text}`}>
+                {item.title}
+              </span>
+              <span className={`text-xs ${colors.text}`}>
+                {item.sets} Sets
+              </span>
+            </div>
+          );
+        })}
+      </div>
 
-  return (
-    <div
-      key={idx}
-      className={`rounded-lg px-2 py-1 text-sm font-semibold w-full h-[30px] flex items-center justify-between ${bgColor}`}
-    >
-      <span className="truncate">{item.title}</span>
-      <span className="ml-2 text-gray-700 whitespace-nowrap">{item.sets} Sets</span>
+      {/* Footer row: delete icon + + button */}
+      <div className="flex justify-between items-center">
+        <div>
+          {plan.trash && (
+            <CiTrash
+              size={20}
+              color="red"
+              className="cursor-pointer"
+              onClick={() => {
+                setConfirmDelete(plan.workoutcard_id);
+              }}
+            />
+          )}
+        </div>
+        {onAddToWeekPlan && (
+          <button
+            className="text-blue-600 text-lg hover:scale-105 cursor-pointer"
+            onClick={() => onAddToWeekPlan(plan.workoutcard_title)}
+          >
+            +
+          </button>
+        )}
+      </div>
     </div>
   );
-})}
-
-
-    </div>
-
-    {/* Footer row: delete icon + + button */}
-<div className="flex justify-between items-center">
-  <div>
-    {plan.trash && (
-      <CiTrash
-        size={20}
-        color="red"
-        className="cursor-pointer"
-        onClick={() => {
-          setConfirmDelete(plan.workoutcard_id);
-        }}
-      />
-    )}
-  </div>
-  {onAddToWeekPlan && (
-    <button
-    className="text-blue-600 text-lg hover:scale-105 cursor-pointer"
-    onClick={() => onAddToWeekPlan(plan.workoutcard_title)}
-  >
-    +
-  </button>
-  )}
-</div>
-
-  </div>
-);
+};
 
 /* ------------- MAIN PAGE ------------- */
 const WorkoutPlan: React.FC = () => {
@@ -201,6 +240,43 @@ const WorkoutPlan: React.FC = () => {
     });
   };
 
+  const handleFavorite = async (plan: PlanProps) => {
+    try {
+      // Call the favorite API with appropriate action
+      await apiService.request("FAVORITE_WORKOUT", {
+        queryParams: { action: plan.is_favorited ? "unfav" : "fav" },
+        body: {
+          workoutcard_id: plan.workoutcard_id,
+        },
+      });
+
+      if (plan.is_favorited) {
+        // If unfavoriting, remove from favorites
+        setFavoritePlans((prev) =>
+          prev.filter((p) => p.workoutcard_id !== plan.workoutcard_id)
+        );
+      } else {
+        // If favoriting, remove from discover/popular and add to favorites
+        setDiscoverPlans((prev) =>
+          prev.filter((p) => p.workoutcard_id !== plan.workoutcard_id)
+        );
+        setPopularPlans((prev) =>
+          prev.filter((p) => p.workoutcard_id !== plan.workoutcard_id)
+        );
+
+        // Add to favorites with is_favorited flag
+        const favoritedPlan = {
+          ...plan,
+          is_favorited: true,
+          trash: true, // This allows it to show in the favorites section
+        };
+        setFavoritePlans((prev) => [...prev, favoritedPlan]);
+      }
+    } catch (error) {
+      console.error("Failed to favorite/unfavorite workout:", error);
+    }
+  };
+
   //On screen load, grab user details and health data
   useEffect(() => {
     async function fetchData() {
@@ -208,7 +284,16 @@ const WorkoutPlan: React.FC = () => {
         const result = await apiService.request("GET_WORKOUT_CARD", {
           queryParams: { action: "user" },
         });
-        setFavoritePlans(filterPlans(true, result.data));
+        // Combine user_cards and favorited_cards, marking favorited ones
+        const userCards = result.data.user_cards.map((card: any) => ({
+          ...card,
+          is_favorited: false
+        }));
+        const favoritedCards = result.data.favorited_cards.map((card: any) => ({
+          ...card,
+          is_favorited: true
+        }));
+        setFavoritePlans(filterPlans(true, [...userCards, ...favoritedCards]));
       } catch {
         /*NOOP*/
       }
@@ -265,6 +350,8 @@ const WorkoutPlan: React.FC = () => {
                 plan={plan}
                 onAddToWeekPlan={() => setSelectedPlan(plan)}
                 setConfirmDelete={(planID) => setConfirmDelete(planID)}
+                onFavorite={handleFavorite}
+                showFavoriteButton={true}
               />
             ))}
           </div>
@@ -282,6 +369,8 @@ const WorkoutPlan: React.FC = () => {
                 plan={plan}
                 onAddToWeekPlan={() => setSelectedPlan(plan)}
                 setConfirmDelete={(planID) => setConfirmDelete(planID)}
+                onFavorite={handleFavorite}
+                showFavoriteButton={true}
               />
             ))}
           </div>
@@ -299,6 +388,8 @@ const WorkoutPlan: React.FC = () => {
                 plan={plan}
                 onAddToWeekPlan={() => setSelectedPlan(plan)}
                 setConfirmDelete={(planID) => setConfirmDelete(planID)}
+                onFavorite={handleFavorite}
+                showFavoriteButton={true}
               />
             ))}
           </div>
@@ -337,8 +428,8 @@ const WorkoutPlan: React.FC = () => {
                         className="bg-red-100 text-red-500 text-xs rounded px-2 py-1 font-semibold flex justify-between items-center"
                       >
                         <span className="whitespace-normal break-words w-full text-left">
-  {pName.workoutcard_title}
-</span>
+                          {pName.workoutcard_title}
+                        </span>
 
                         <CiTrash
                           size={16}
@@ -377,8 +468,6 @@ const WorkoutPlan: React.FC = () => {
             </div>
           </div>
         </div>
-
-
       </div>
 
       {/* MODAL: Add a plan to a day */}
