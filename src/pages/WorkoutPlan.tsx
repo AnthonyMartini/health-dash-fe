@@ -111,10 +111,16 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
           onMouseLeave={() => setIsHeartHovered(false)}
           onClick={handleHeartClick}
         >
-          {isHeartHovered ? (
-            <BsSuitHeart className="text-red-500" />
-          ) : (
+          {plan.is_favorited ? (
+            isHeartHovered ? (
+              <BsSuitHeart className="text-gray-500" />
+            ) : (
+              <BsSuitHeartFill className="text-red-500" />
+            )
+          ) : isHeartHovered ? (
             <BsSuitHeartFill className="text-red-500" />
+          ) : (
+            <BsSuitHeart className="text-gray-500" />
           )}
         </div>
       )}
@@ -123,9 +129,6 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
       <div className="flex flex-col pr-8">
         <span className="text-sm font-bold text-black w-full">
           {plan.workoutcard_title}
-          {plan.is_favorited && (
-            <span className="ml-1 text-xs text-gray-500">(Favorited)</span>
-          )}
         </span>
         {plan.username && (
           <span className="text-xs text-gray-500">
@@ -150,7 +153,9 @@ const SmallPlanCard: React.FC<SmallPlanCardProps> = ({
               key={idx}
               className={`rounded-[10px] px-3 py-2 w-full flex items-center justify-between ${colors.bg}`}
             >
-              <span className={`text-xs ${colors.text} flex-1 pr-2 break-words`}>
+              <span
+                className={`text-xs ${colors.text} flex-1 pr-2 break-words`}
+              >
                 {item.title}
               </span>
               <span className={`text-xs ${colors.text} whitespace-nowrap`}>
@@ -287,11 +292,11 @@ const WorkoutPlan: React.FC = () => {
         // Combine user_cards and favorited_cards, marking favorited ones
         const userCards = result.data.user_cards.map((card: any) => ({
           ...card,
-          is_favorited: false
+          is_favorited: false,
         }));
         const favoritedCards = result.data.favorited_cards.map((card: any) => ({
           ...card,
-          is_favorited: true
+          is_favorited: true,
         }));
         setFavoritePlans(filterPlans(true, [...userCards, ...favoritedCards]));
       } catch {
@@ -635,12 +640,15 @@ const WorkoutPlan: React.FC = () => {
                   async function sendData() {
                     try {
                       //Create new card on backend
-                      const result = await apiService.request("UPDATE_WORKOUT_CARD", {
-                        body: {
-                          workoutcard_title: workoutName,
-                          workoutcard_content: { exercises: exercises },
-                        },
-                      });
+                      const result = await apiService.request(
+                        "UPDATE_WORKOUT_CARD",
+                        {
+                          body: {
+                            workoutcard_title: workoutName,
+                            workoutcard_content: { exercises: exercises },
+                          },
+                        }
+                      );
                       //update favorite plans (our plans) with new workoutplan with ID from DB:
                       setFavoritePlans([
                         ...FavoritePlans,
