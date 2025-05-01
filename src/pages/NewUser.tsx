@@ -12,7 +12,6 @@ const NewUserPage: React.FC = () => {
   // ✅ State for validation errors
   const [emailError, setEmailError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [heightError, setHeightError] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState({
     username: "",
     first_name: "",

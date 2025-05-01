@@ -317,6 +317,8 @@ const Profile: React.FC = () => {
         updateUser({
           ...updatedUserData,
           height: height || "0",
+          user_profile_picture_url:
+            updatedUserData.user_profile_picture_url || "",
         });
         setNewProfileImage(null); // Clear temp image
 
