@@ -71,6 +71,148 @@ function getPreviousDayLabel(previousDate: string): string {
 
   return previousDate === easternYesterday ? "yesterday" : previousDate;
 }
+interface CircularProgressBarProps {
+  radius: number; // Radius of the circle
+  strokeWidth: number; // Width of the progress stroke
+  percentage: number; // Progress percentage (0-100)
+  color: string; // Color of the progress stroke (Tailwind class, e.g., 'stroke-blue-500')
+  trackColor: string; // Color of the background track (Tailwind class, e.g., 'stroke-gray-200')
+  center: { x: number; y: number }; // Center coordinates { x, y }
+}
+
+const CircularProgressBar = ({
+  radius, // Radius of the circle
+  strokeWidth, // Width of the progress stroke
+  percentage, // Progress percentage (0-100)
+  color, // Color of the progress stroke (Tailwind class, e.g., 'stroke-blue-500')
+  trackColor, // Color of the background track (Tailwind class, e.g., 'stroke-gray-200')
+  center, // Center coordinates { x, y }
+}: CircularProgressBarProps) => {
+  // Ensure percentage is within 0-100
+  const validPercentage = Math.max(0, Math.min(100, percentage));
+
+  // Calculate the circumference of the circle
+  const circumference = 2 * Math.PI * radius;
+  // Calculate the stroke offset based on the percentage
+  const offset = circumference - (validPercentage / 100) * circumference;
+
+  return (
+    <>
+      {/* Background Track */}
+      <circle
+        className={trackColor}
+        strokeWidth={strokeWidth}
+        stroke="currentColor" // Use Tailwind class for color
+        fill="transparent"
+        r={radius}
+        cx={center.x}
+        cy={center.y}
+      />
+      {/* Progress Fill */}
+      <circle
+        className={color}
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        strokeLinecap="round" // Makes the ends of the progress line rounded
+        stroke="currentColor" // Use Tailwind class for color
+        fill="transparent"
+        r={radius}
+        cx={center.x}
+        cy={center.y}
+        // Rotate by -90 degrees to start the progress from the top
+        transform={`rotate(-90 ${center.x} ${center.y})`}
+        style={{ transition: "stroke-dashoffset 0.35s ease-in-out" }} // Smooth transition
+      />
+    </>
+  );
+};
+
+interface ConcentricProgressBarProps {
+  barsData: Array<{
+    amount: number; // Current value
+    target: number; // Target value
+    color?: string; // Optional color for the bar (Tailwind class)
+    trackColor?: string; // Optional track color (Tailwind class)
+  }>;
+  size?: number; // Size of the SVG canvas (default 200)
+  strokeWidth?: number; // Width of the progress stroke (default 10)
+}
+
+// Component to render multiple concentric progress bars
+const ConcentricProgressBars = ({
+  barsData,
+  size = 200,
+  strokeWidth = 10,
+}: ConcentricProgressBarProps) => {
+  // Calculate the center of the SVG canvas
+  const center = { x: size / 2, y: size / 2 };
+  // Calculate the maximum possible radius leaving space for the outermost stroke
+  const maxRadius = size / 2 - strokeWidth / 2;
+  // Calculate the gap between circles based on the number of bars
+  // Ensure there's a minimum gap, e.g., half the stroke width
+  const totalStrokeSpace = strokeWidth * barsData.length;
+  const remainingRadius = maxRadius - totalStrokeSpace / 2; // Adjust space calculation
+  const radiusStep =
+    barsData.length > 1 ? remainingRadius / barsData.length : 0; // Step between radii
+
+  // Define Tailwind color classes for the bars (add more if needed)
+  // Fallback colors if not provided in barsData
+  const defaultColors = [
+    "stroke-blue-500",
+    "stroke-green-500",
+    "stroke-yellow-500",
+    "stroke-red-500",
+    "stroke-purple-500",
+    "stroke-pink-500",
+  ];
+  const defaultTrackColor = "stroke-gray-200"; // Default track color
+
+  return (
+    <div className="flex items-center justify-center p-1">
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        {barsData.map((bar, index) => {
+          // Calculate the radius for the current bar
+          // Start from the largest radius for the outermost bar
+          const radius = maxRadius - index * (strokeWidth + radiusStep * 0.5); // Adjust spacing calculation
+
+          // Calculate the percentage, handle target being 0
+          const percentage =
+            bar.target > 0 ? (bar.amount / bar.target) * 100 : 0;
+
+          // Get color for the bar, cycle through defaults if not provided
+          const color =
+            bar.color || defaultColors[index % defaultColors.length];
+          const trackColor = bar.trackColor || defaultTrackColor;
+
+          // Basic validation for radius
+          if (radius <= 0) {
+            console.warn(
+              `Calculated radius for bar ${index} is too small or negative. Check size, strokeWidth, and number of bars.`
+            );
+            return null; // Don't render if radius is invalid
+          }
+
+          return (
+            <CircularProgressBar
+              key={index}
+              radius={radius}
+              strokeWidth={strokeWidth}
+              percentage={percentage}
+              color={color}
+              trackColor={trackColor}
+              center={center}
+            />
+          );
+        })}
+        {/* Optional: Add text in the center */}
+        {/* <text x="50%" y="50%" textAnchor="middle" dy=".3em" className="text-lg font-semibold fill-gray-700">
+          Progress
+        </text> */}
+      </svg>
+    </div>
+  );
+};
 
 //Define Card Array
 interface MetricCardProps {
@@ -202,6 +344,42 @@ const Dashboard: React.FC<DashboardProps> = () => {
   const [data, setData] = useState<DashboardDataProps>(filterData({}));
   const [weightEmbedUrl, setWeightEmbedUrl] = useState("");
   const [macrosEmbedUrl, setMacrosEmbedUrl] = useState("");
+
+  const [progressData, setProgressData] = useState([
+    // Match colors from the image provided (Orange, Blue, Purple, Indigo)
+    {
+      target: 100,
+      amount: 75,
+      color: "stroke-[#FFA500]",
+      blobcolor: "bg-[#FFA500]",
+      trackColor: "stroke-[#fadfaf]",
+      label: "Prot",
+    }, // Bar 1 (outermost)
+    {
+      target: 200,
+      amount: 150,
+      color: "stroke-[#007AFF]",
+      blobcolor: "bg-[#007AFF]",
+      trackColor: "stroke-[#b8daff]",
+      label: "Carbs",
+    }, // Bar 2
+    {
+      target: 50,
+      amount: 10,
+      color: "stroke-[#AF52DE]",
+      blobcolor: "bg-[#AF52DE]",
+      trackColor: "stroke-[#cda6e0]",
+      label: "Fat",
+    }, // Bar 3
+    {
+      target: 1000,
+      amount: 400,
+      color: "stroke-[#37ed37]",
+      blobcolor: "bg-[#37ed37]",
+      trackColor: "stroke-[#c8fac8]",
+      label: "Cal",
+    }, // Bar 4 (innermost)
+  ]);
 
   useEffect(() => {
     async function fetchData() {
@@ -676,11 +854,35 @@ const Dashboard: React.FC<DashboardProps> = () => {
               content={
                 <div className="w-full h-full flex items-center justify-center">
                   <div className="border-2 border-gray-200 w-[365px] h-[320px] overflow-hidden rounded-lg">
+                    <ConcentricProgressBars
+                      barsData={progressData}
+                      size={200} // Overall size of the SVG container
+                      strokeWidth={12} // Width of each progress bar stroke
+                    />
+                    <div className="mt-6 grid grid-cols-2 gap-x-2 gap-y-2 w-full max-w-xs">
+                      {progressData.map((bar, index) => (
+                        // Each item in the grid
+                        <div
+                          key={index}
+                          className="text-sm text-gray-600 text-center p-2 rounded-lg bg-white shadow-sm"
+                        >
+                          {/* Optional: Add a color indicator dot */}
+                          <span
+                            className={`inline-block w-3 h-3 rounded-full mr-2 ${bar.blobcolor}`}
+                          ></span>
+                          {/* Display label and progress */}
+                          <span className="font-small">
+                            {bar.label || `Bar ${index + 1}`}:
+                          </span>{" "}
+                          {bar.amount.toFixed(0)} / {bar.target}
+                        </div>
+                      ))}
+                    </div>
                     {macrosEmbedUrl ? (
                       <iframe
                         title="Macros Visual"
                         src={macrosEmbedUrl}
-                        className="w-full h-full border-none"
+                        className="w-full h-full border-none hidden"
                         style={{ minHeight: "300px" }}
                       />
                     ) : (
@@ -759,7 +961,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
               title={`${isToday ? "Today's" : selectedDate.toLocaleDateString()}'s Workout Plan`}
               action={() => navigate("/workout-plan")}
               content={
-                <div className={`w-full flex-1 rounded-[20px] gap-2 flex flex-col p-2 ${data.day_workout_plan?.length ? "bg-[rgba(239,240,240,0.3)]" : ""}`}>
+                <div
+                  className={`w-full flex-1 rounded-[20px] gap-2 flex flex-col p-2 ${data.day_workout_plan?.length ? "bg-[rgba(239,240,240,0.3)]" : ""}`}
+                >
                   {data.day_workout_plan?.length ? (
                     data.day_workout_plan.map((workout, index) => (
                       <div
@@ -774,7 +978,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                             </span>
                           </div>
                           <div className="flex items-center gap-2.5">
-                            <span className={`text-[16px] leading-[19px] tracking-[0.01em] ${workout.status ? "text-[#FF9500]" : "text-[#FF9500]"}`}>
+                            <span
+                              className={`text-[16px] leading-[19px] tracking-[0.01em] ${workout.status ? "text-[#FF9500]" : "text-[#FF9500]"}`}
+                            >
                               {workout.status ? "Completed" : "In-Progress"}
                             </span>
                             {isToday && (
@@ -797,17 +1003,22 @@ const Dashboard: React.FC<DashboardProps> = () => {
                               { bg: "bg-[#D6F5DB]", text: "text-[#34C759]" }, // Green
                               { bg: "bg-[#FCF2E9]", text: "text-[#FF9500]" }, // Orange
                             ];
-                            const colors = colorCombinations[idx % colorCombinations.length];
+                            const colors =
+                              colorCombinations[idx % colorCombinations.length];
 
                             return (
                               <div
                                 key={`exercise-${idx}`}
                                 className={`flex justify-between items-center px-2.5 py-2.5 rounded-[10px] w-full ${colors.bg}`}
                               >
-                                <span className={`text-[16px] leading-[19px] tracking-[0.01em] font-semibold ${colors.text}`}>
+                                <span
+                                  className={`text-[16px] leading-[19px] tracking-[0.01em] font-semibold ${colors.text}`}
+                                >
                                   {item.title}
                                 </span>
-                                <span className={`text-[16px] leading-[19px] tracking-[0.01em] ${colors.text}`}>
+                                <span
+                                  className={`text-[16px] leading-[19px] tracking-[0.01em] ${colors.text}`}
+                                >
                                   {item.set_count} sets
                                 </span>
                               </div>
@@ -818,7 +1029,8 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     ))
                   ) : (
                     <div className="text-center text-gray-400 py-4">
-                      No workout plans for {isToday ? "today" : selectedDate.toLocaleDateString()}
+                      No workout plans for{" "}
+                      {isToday ? "today" : selectedDate.toLocaleDateString()}
                     </div>
                   )}
                 </div>
