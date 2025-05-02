@@ -383,7 +383,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
         label: "Fat",
       }, // Bar 3
       {
-        target: 1000,
+        target: 2200,
         amount: total.calories,
         color: "stroke-[#37ed37]",
         blobcolor: "bg-[#37ed37]",
@@ -421,7 +421,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
       label: "Fat",
     }, // Bar 3
     {
-      target: 1000,
+      target: 2200,
       amount: 0,
       color: "stroke-[#37ed37]",
       blobcolor: "bg-[#37ed37]",

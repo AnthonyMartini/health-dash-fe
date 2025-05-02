@@ -151,6 +151,14 @@ const NewUserPage: React.FC = () => {
             Female
           </option>
         </select>
+        <label className="block mb-1 font-bold text-[12px]">
+          Disclaimer: Please remember that the information and guidance provided
+          by Next Step Tracker are for informational purposes only and do not
+          constitute health advice. We are not licensed healthcare
+          professionals. Always seek the advice of your physician or other
+          qualified health provider with any questions you may have regarding
+          your personal health.
+        </label>
 
         <div className="flex justify-center w-full cursor-pointer">
           <button
