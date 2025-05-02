@@ -540,7 +540,6 @@ const Dashboard: React.FC<DashboardProps> = () => {
           carb: 0,
           fat: 0,
         },
-        day_foood: [],
         day_water: 0,
         day_sleep: 0,
         day_weight: 0,
@@ -611,6 +610,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
           previous_day: "previous day",
         })
       );
+      getTotalMacros([]);
     }
   };
 
