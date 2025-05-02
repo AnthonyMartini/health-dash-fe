@@ -121,9 +121,6 @@ const components = {
         </Heading>
       );
     },
-    Footer() {
-      return <Text>Footer Information</Text>;
-    },
   },
   SetupTotp: {
     Header() {
@@ -136,9 +133,6 @@ const components = {
           Enter Information:
         </Heading>
       );
-    },
-    Footer() {
-      return <Text>Footer Information</Text>;
     },
   },
   ConfirmSignIn: {
@@ -153,9 +147,6 @@ const components = {
         </Heading>
       );
     },
-    Footer() {
-      return <Text>Footer Information</Text>;
-    },
   },
   ForgotPassword: {
     Header() {
@@ -169,9 +160,6 @@ const components = {
         </Heading>
       );
     },
-    Footer() {
-      return <Text>Footer Information</Text>;
-    },
   },
   ConfirmResetPassword: {
     Header() {
@@ -184,9 +172,6 @@ const components = {
           Enter Information:
         </Heading>
       );
-    },
-    Footer() {
-      return <Text>Footer Information</Text>;
     },
   },
 };
