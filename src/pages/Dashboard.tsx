@@ -722,10 +722,10 @@ const Dashboard: React.FC<DashboardProps> = () => {
     if (update.day_water > 0) cleanUpdate.day_water = update.day_water;
     if (update.day_weight > 0) cleanUpdate.day_weight = update.day_weight;
 
-    // Only include non-empty arrays
-    if (update.day_food && update.day_food.length > 0) {
-      cleanUpdate.day_food = update.day_food;
-    }
+    // Always include day_food, even if empty
+    cleanUpdate.day_food = update.day_food || [];
+
+    // Only include non-empty arrays for other fields
     if (update.day_workout_plan && update.day_workout_plan.length > 0) {
       cleanUpdate.day_workout_plan = update.day_workout_plan;
     }
@@ -997,6 +997,9 @@ const Dashboard: React.FC<DashboardProps> = () => {
                                     )
                                 ),
                               };
+                              if (!updatedData.day_food) {
+                                updatedData.day_food = [];
+                              }
                               updateDB(updatedData);
                               return updatedData;
                             });
