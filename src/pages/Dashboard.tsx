@@ -540,6 +540,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
           carb: 0,
           fat: 0,
         },
+        day_foood: [],
         day_water: 0,
         day_sleep: 0,
         day_weight: 0,
@@ -555,6 +556,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
         ? filterData(result.data)
         : filterData(emptyData);
       setData(filteredData);
+      getTotalMacros(filteredData.day_food || []);
 
       // Fetch and update weekly plan if needed
       try {
@@ -1310,6 +1312,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
                       macros: { protein: 0.0, carb: 0.0, fat: 0.0 },
                       calories: 0.0,
                     });
+                    getTotalMacros(updatedData.day_food || []);
 
                     return updatedData; // Ensure the new state is returned
                   });
