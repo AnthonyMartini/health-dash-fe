@@ -201,7 +201,7 @@ const NavBarHeader: React.FC<NavBarHeaderProps> = ({
           <img
             src={user.user_profile_picture_url || DefaultAvatar}
             alt="Profile"
-            className="w-11 h-11 cursor-pointer rounded-full hover:opacity-90"
+            className="w-[44px] h-[44px] cursor-pointer rounded-full hover:opacity-90"
             onClick={onProfileClick}
           />
 

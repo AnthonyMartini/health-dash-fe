@@ -950,7 +950,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
           </div>
           <div className="flex flex-row gap-[20px] w-full p-2 justify-center flex-wrap">
             <ContentCard
-              title={`${isToday ? "Today's" : selectedDate.toLocaleDateString()}'s Consumption`}
+              title={`${isToday ? "Today" : selectedDate.toLocaleDateString()}'s Consumption`}
               action={() => setLogConsumption(true)}
               actionText={isToday ? "Add Consumption" : undefined}
               content={
@@ -1013,7 +1013,7 @@ const Dashboard: React.FC<DashboardProps> = () => {
               isToday={isToday}
             />
             <ContentCard
-              title={`${isToday ? "Today's" : selectedDate.toLocaleDateString()}'s Workout Plan`}
+              title={`${isToday ? "Today" : selectedDate.toLocaleDateString()}'s Workout Plan`}
               action={() => navigate("/workout-plan")}
               content={
                 <div
